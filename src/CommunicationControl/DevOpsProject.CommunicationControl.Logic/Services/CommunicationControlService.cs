@@ -5,6 +5,7 @@ using DevOpsProject.Shared.Enums;
 using DevOpsProject.Shared.Exceptions;
 using DevOpsProject.Shared.Messages;
 using DevOpsProject.Shared.Models;
+using DevOpsProject.Shared.Models.HiveMindCommands;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -152,6 +153,47 @@ namespace DevOpsProject.CommunicationControl.Logic.Services
             return model.Timestamp;
         }
 
+        public async Task<string> SendHiveStopSignal(string hiveId)
+        {
+            var hive = await GetHiveModel(hiveId);
+            if (hive == null)
+            {
+                _logger.LogError("Sending Hive Stop signal: Hive not found for HiveID: {hiveId}", hiveId);
+                return null;
+            }
+
+            bool isSuccessfullySent = false;
+            string hiveMindPath = _communicationControlConfiguration.CurrentValue.HiveMindPath;
+            var command = new StopHiveMindCommand
+            {
+                CommandType = HiveMindState.Stop,
+                StopImmediately = true,
+                Timestamp = DateTime.Now
+            };
+            try
+            {
+                var result = await _hiveHttpClient.SendHiveControlCommandAsync(hive.HiveSchema, hive.HiveIP, hive.HivePort, hiveMindPath, command);
+                isSuccessfullySent = true;
+                return result;
+            }
+            finally
+            {
+                if (isSuccessfullySent)
+                {
+                    await _messageBus.Publish(new StopHiveMessage
+                    {
+                        IsImmediateStop = true,
+                        HiveID = hiveId
+                    });
+                }
+                else
+                {
+                    _logger.LogError("Failed to send stop command for Hive: {@hive}, path: {path}, \n Command: {@command}", hive, hiveMindPath, command);
+                }
+
+            }
+        }
+
         public async Task<string> SendHiveControlSignal(string hiveId, Location destination)
         {
             var hive = await GetHiveModel(hiveId);
@@ -165,8 +207,8 @@ namespace DevOpsProject.CommunicationControl.Logic.Services
             string hiveMindPath = _communicationControlConfiguration.CurrentValue.HiveMindPath;
             var command = new MoveHiveMindCommand
             {
-                CommandType = State.Move,
-                Location = destination,
+                CommandType = HiveMindState.Move,
+                Destination = destination,
                 Timestamp = DateTime.Now
             };
             try
@@ -239,6 +281,12 @@ namespace DevOpsProject.CommunicationControl.Logic.Services
                 return;
             }
 
+            var command = new DeleteInterferenceFromHiveMindCommand
+            {
+                CommandType = HiveMindState.DeleteInterference,
+                InterferenceId = interferenceId
+            };
+
             string hiveMindPath = _communicationControlConfiguration.CurrentValue.HiveMindPath;
             string[] hiveIds = hives.Select(h => h.HiveID).ToArray();
             _logger.LogInformation("Notifying {count} hives about deleted interference {interferenceId}: {hiveIds}", hives.Count, interferenceId, hiveIds);
@@ -247,8 +295,8 @@ namespace DevOpsProject.CommunicationControl.Logic.Services
             {
                 try
                 {
-                    var result = await _hiveHttpClient.NotifyHiveMindAboutDeletedInterference(
-                        hive.HiveSchema, hive.HiveIP, hive.HivePort, hiveMindPath, interferenceId);
+                    var result = await _hiveHttpClient.SendHiveControlCommandAsync(
+                        hive.HiveSchema, hive.HiveIP, hive.HivePort, hiveMindPath, command);
 
                     _logger.LogInformation(
                         "Successfully notified hive {hiveId} about deleted interference {interferenceId}",
@@ -302,9 +350,10 @@ namespace DevOpsProject.CommunicationControl.Logic.Services
                 return;
             }
 
-            var command = new SetInterferenceToHiveCommand
+            var command = new AddInterferenceToHiveMindCommand
             {
-                Interference = interference
+                CommandType = HiveMindState.SetInterference,
+                Interference = interference,
             };
 
             string hiveMindPath = _communicationControlConfiguration.CurrentValue.HiveMindPath;
@@ -315,7 +364,9 @@ namespace DevOpsProject.CommunicationControl.Logic.Services
             {
                 try
                 {
-                    var result = await _hiveHttpClient.NotifyHiveMindAboutAddedInterference(
+
+
+                    var result = await _hiveHttpClient.SendHiveControlCommandAsync(
                         hive.HiveSchema, hive.HiveIP, hive.HivePort, hiveMindPath, command);
                     
                     _logger.LogInformation(

@@ -1,6 +1,6 @@
 import React from "react";
 
-const Popup = ({ isVisible, coords, type, interferenceId, onConfirm, onCancel, onPlaceInterference, onRemoveInterference }) => {
+const Popup = ({ isVisible, coords, onConfirm, onCancel, onStopMove }) => {
     if (!isVisible || !coords) return null;
 
     // Copy coordinates to clipboard

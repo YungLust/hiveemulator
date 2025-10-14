@@ -2,9 +2,13 @@ using Asp.Versioning;
 using Asp.Versioning.Builder;
 using DevOpsProject.HiveMind.API.DI;
 using DevOpsProject.HiveMind.API.Middleware;
+using DevOpsProject.HiveMind.Logic.Patterns.Factory.Interfaces;
 using DevOpsProject.HiveMind.Logic.Services.Interfaces;
 using DevOpsProject.Shared.Configuration;
 using DevOpsProject.Shared.Models;
+using Microsoft.AspNetCore.Mvc;
+using DevOpsProject.Shared.Models.HiveMindCommands;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
@@ -28,6 +32,7 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddOptionsConfiguration(builder.Configuration);
 
+//builder.Services.AddValidatorsConfiguration();
 builder.Services.AddHiveMindLogic();
 
 builder.Services.AddHttpClientsConfiguration();
@@ -82,21 +87,10 @@ groupBuilder.MapGet("ping", (IOptionsSnapshot<HiveCommunicationConfig> config) =
     });
 });
 
-groupBuilder.MapPost("command", (MoveHiveMindCommand command, IHiveMindMovingService hiveMindMovingService) =>
+groupBuilder.MapPost("command", async (HiveMindCommand command, [FromServices]ICommandHandlerFactory factory) =>
 {
-    hiveMindMovingService.MoveToLocation(command.Location);
-    return Results.Ok();
-});
-
-groupBuilder.MapPost("interference", (SetInterferenceToHiveCommand request, IHiveMindService hiveMindService) =>
-{
-    hiveMindService.AddInterference(request.Interference);
-    return Results.Ok();
-});
-
-groupBuilder.MapDelete("interference/{id:guid}", (Guid id, IHiveMindService hiveMindService) =>
-{
-    hiveMindService.RemoveInterference(id);
+    var handler = factory.GetHandler(command);
+    await handler.HandleAsync(command);
     return Results.Ok();
 });
 

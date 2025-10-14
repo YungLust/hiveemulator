@@ -47,7 +47,6 @@ export const moveHives = async (apiUrl, lat, lon, ids) => {
     }
 };
 
-// Fetch all interferences
 export const fetchInterferences = async (apiUrl) => {
     try {
         const response = await axios.get(`${apiUrl}/interferences`);
@@ -137,3 +136,16 @@ export const deleteInterference = async (apiUrl, interferenceId) => {
         throw error;
     }
 };
+
+export const stopHiveMove = async (apiUrl, ids) => {
+    try {
+        await axios.post(`${apiUrl}/hive/stop`, {
+            Hives: ids
+        });
+        console.log(`Stop hive move signal sent`);
+    }
+    catch (error) {
+        console.error("Error stopping hive movement:", error);
+        throw error;
+    }
+}

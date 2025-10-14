@@ -21,5 +21,6 @@ namespace DevOpsProject.CommunicationControl.Logic.Services.Interfaces
         Task NotifyHivesOnDeletedInterference(Guid interferenceId);
 
         Task NotifyHivesAboutAddedInterference(Guid interferenceId);
+        Task<string> SendHiveStopSignal(string hiveId);
     }
 }
