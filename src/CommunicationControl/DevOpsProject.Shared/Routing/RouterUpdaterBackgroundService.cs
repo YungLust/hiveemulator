@@ -8,6 +8,8 @@ public sealed class RouterUpdaterBackgroundService(ILogger<RouterUpdaterBackgrou
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        logger.LogInformation("RouterUpdaterBackgroundService started");
+        
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -24,5 +26,7 @@ public sealed class RouterUpdaterBackgroundService(ILogger<RouterUpdaterBackgrou
                 logger.LogError(ex, "Error occured while executing router updater");
             }
         }
+        
+        logger.LogInformation("RouterUpdaterBackgroundService stopped");
     }
 }

@@ -13,6 +13,8 @@ public sealed class NetworkStatusPublisher(ILogger<NetworkStatusPublisher> logge
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        logger.LogInformation("Starting NetworkStatusPublisher");
+        
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -50,5 +52,7 @@ public sealed class NetworkStatusPublisher(ILogger<NetworkStatusPublisher> logge
                 logger.LogError(e, "Error in NetworkStatusPublisher");
             }
         }
+        
+        logger.LogInformation("Stopping NetworkStatusPublisher");
     }
 }

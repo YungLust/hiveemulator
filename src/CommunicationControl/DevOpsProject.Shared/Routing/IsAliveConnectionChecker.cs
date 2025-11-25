@@ -9,6 +9,7 @@ public class IsAliveConnectionChecker(ILogger<IsAliveConnectionChecker> logger, 
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        logger.LogInformation("IsAliveConnectionChecker started");
         var maxDifference = TimeSpan.FromMilliseconds(options.Value.IsAliveCheckerMaxDifferenceInMilliseconds);
         
         while (!stoppingToken.IsCancellationRequested)
@@ -37,8 +38,10 @@ public class IsAliveConnectionChecker(ILogger<IsAliveConnectionChecker> logger, 
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error occured while executing router updater");
+                logger.LogError(ex, "Error occured while executing IsAliveConnectionChecker");
             }
         }
+        
+        logger.LogInformation("IsAliveConnectionChecker stopped");
     }
 }
