@@ -17,7 +17,8 @@
   <ItemGroup>
     <Protobuf Include="Protos\*.proto"
               GrpcServices="None"
-              Access="Public" />
+              Access="Public"
+              ProtoRoot="Protos"/>
   </ItemGroup>
   
 </Project>

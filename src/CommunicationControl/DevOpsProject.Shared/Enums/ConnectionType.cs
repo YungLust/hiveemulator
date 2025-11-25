@@ -3,6 +3,6 @@
 public enum ConnectionType
 {
     Undefined,
-    HiveMind,
+    Hive,
     Drone
 }

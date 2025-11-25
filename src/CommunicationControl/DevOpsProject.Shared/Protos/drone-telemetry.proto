@@ -1,0 +1,24 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "DevOpsProject.Shared.Grpc";
+import "google/protobuf/timestamp.proto";
+
+package shared;
+
+import "location.proto";
+
+message DroneTelemetry
+{
+  string droneId = 1;
+  Location location = 2;
+  float speed = 3;
+  float height = 4;
+  google.protobuf.Timestamp timestamp = 6;
+}
+
+enum DroneState
+{
+  DroneState_None = 0;
+  DroneState_Stop = 1;
+  DroneState_Move = 2;
+}

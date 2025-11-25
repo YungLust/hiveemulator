@@ -4,9 +4,21 @@ option csharp_namespace = "DevOpsProject.Shared.Grpc";
 
 package shared;
 
+import "network-status.proto";
+import "result.proto";
+import "location.proto";
+import "google/protobuf/timestamp.proto";
+
 service DroneService
 {
   rpc Ping (PingRequest) returns (PingResponse);
+  rpc ConnectDrone (ConnectDroneRequest) returns (ConnectDroneResponse);
+  rpc DisconnectDrone (DisconnectDroneRequest) returns (DisconnectDroneResponse);
+  rpc Move (MoveRequest) returns (MoveResponse);
+  rpc SimulateDeadConnection (SimulateDeadConnectionRequest) returns (SimulateDeadConnectionResponse);
+  rpc StopDeadConnectionSimulation (StopDeadConnectionSimulationRequest) returns (StopDeadConnectionSimulationResponse);
+  rpc ConnectHive (ConnectHiveRequest) returns (ConnectHiveResponse);
+  rpc DisconnectHive (DisconnectHiveRequest) returns (DisconnectHiveResponse);
 }
 
 message PingRequest
@@ -16,5 +28,91 @@ message PingRequest
 
 message PingResponse
 {
-  
+  string id = 1;
+  ConnectionType type = 2;
+  string ipAddress = 3;
+  int32 http1Port = 4;
+  int32 grpcPort = 5;
+  int32 udpPort = 6;
+  google.protobuf.Timestamp timestamp = 7;
+}
+
+message ConnectDroneRequest
+{
+  string id = 1;
+  string ipAddress = 2;
+  int32 http1Port = 3;
+  int32 grpcPort = 4;
+  int32 udpPort = 5;
+}
+
+message ConnectDroneResponse
+{
+    Result result = 1;
+}
+
+message DisconnectDroneRequest
+{
+  string id = 1;
+}
+
+message DisconnectDroneResponse
+{
+  Result result = 1;
+}
+
+message MoveRequest
+{
+  Location location = 1;
+}
+
+message MoveResponse
+{
+  Result result = 1;
+}
+
+message SimulateDeadConnectionRequest
+{
+  string connectionName1 = 1;
+  string connectionName2 = 2;
+}
+
+message SimulateDeadConnectionResponse
+{
+  Result result = 1;
+}
+
+message StopDeadConnectionSimulationRequest
+{
+  string connectionName1 = 1;
+  string connectionName2 = 2;
+}
+
+message StopDeadConnectionSimulationResponse
+{
+  Result result = 1;
+}
+
+message ConnectHiveRequest
+{
+  string id = 1;
+  string ipAddress = 2;
+  int32 http1Port = 3;
+  int32 grpcPort = 4;
+  int32 udpPort = 5;
+}
+
+message ConnectHiveResponse
+{
+  Result result = 1;
+}
+
+message DisconnectHiveRequest
+{
+  string id = 1;
+}
+
+message DisconnectHiveResponse
+{
+  Result result = 1;
 }

@@ -18,7 +18,7 @@ public sealed class CommunicationService : ICommunicationService
                 return Result.Error(ErrorType.AlreadyExists);
             }
             
-            // TODO: ping.
+            // TODO: ping. Use GrpcChannel.ForAddress(). Maybe, create GrpcChannelManager to reuse the clients. Maybe, implement it in Shared folder, for different clients.
             
             _connections.Add(connection.Name, connection);
             return Result.Success();
