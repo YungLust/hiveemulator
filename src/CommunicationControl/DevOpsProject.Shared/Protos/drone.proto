@@ -44,6 +44,8 @@ message ConnectDroneRequest
   int32 http1Port = 3;
   int32 grpcPort = 4;
   int32 udpPort = 5;
+  repeated string aliveConnectionNames = 6;
+  google.protobuf.Timestamp timestamp = 7;
 }
 
 message ConnectDroneResponse
@@ -100,6 +102,8 @@ message ConnectHiveRequest
   int32 http1Port = 3;
   int32 grpcPort = 4;
   int32 udpPort = 5;
+  repeated string aliveConnectionNames = 6;
+  google.protobuf.Timestamp timestamp = 7;
 }
 
 message ConnectHiveResponse

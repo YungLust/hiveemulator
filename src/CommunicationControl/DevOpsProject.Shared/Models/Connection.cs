@@ -7,38 +7,48 @@ public sealed class Connection
     public string Name => GetName(DeviceId, Type);
     public string DeviceId { get; }
     public ConnectionType Type { get; }
-    public Uri Http1Uri { get; }
-    public Uri GrpcUri { get; }
-    public Uri UdpUri { get; }
+    public string IpAddress { get; set; }
+    public int Http1Port { get; }
+    public int GrpcPort { get; }
+    public int UdpPort { get; }
     public ConnectionState State { get; set; } = ConnectionState.Alive;
+    public DateTimeOffset LastUpdatedAt { get; set; }
+    public DateTimeOffset PreviousLastUpdatedAt { get; set; }
 
-    public Connection(string deviceId, ConnectionType type, string ipAddress, ushort http1Port, ushort grpcPort, ushort udpPort) 
+    public Uri Http1Uri
+    {
+        get
+        {
+            var builder = new UriBuilder(IpAddress)
+            {
+                Port = Http1Port
+            };
+            return builder.Uri;
+        }
+    }
+    public Uri GrpcUri
+    {
+        get
+        {
+            var builder = new UriBuilder(IpAddress)
+            {
+                Port = GrpcPort
+            };
+            return builder.Uri;
+        }
+    }
+
+    public Connection(string deviceId, ConnectionType type, string ipAddress, int http1Port, int grpcPort, int udpPort, DateTimeOffset lastUpdatedAt) 
     {
         DeviceId = deviceId;
         Type = type;
-        Http1Uri = GetUri(ipAddress, http1Port);
-        GrpcUri = GetUri(ipAddress, grpcPort);
-        UdpUri = GetUri(ipAddress, udpPort);
-    }
-
-    private Uri GetUri(string ipAddress, ushort port)
-    {
-        var builder = new UriBuilder(ipAddress)
-        {
-            Port = port
-        };
-        return builder.Uri;
+        IpAddress = ipAddress;
+        Http1Port =  http1Port;
+        GrpcPort = grpcPort;
+        UdpPort = udpPort;
+        LastUpdatedAt = lastUpdatedAt;
     }
     
-    public Connection(string deviceId, ConnectionType type, Uri http1Uri, Uri grpcUri, Uri udpUri)
-    {
-        DeviceId = deviceId;
-        Type = type;
-        Http1Uri = http1Uri;
-        GrpcUri = grpcUri;
-        UdpUri = udpUri;
-    }
-
     public static string GetName(string deviceId, ConnectionType type)
         => $"{type.ToString().ToLower()}:{deviceId}";
 }

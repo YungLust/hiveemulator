@@ -5,13 +5,14 @@ namespace DevOpsProject.Shared.Routing;
 public interface IRouterService
 {
     Connection GetNextHop(string name);
-    Connection GetConnection(string name);
+    Connection GetConnectionOrNull(string name);
     bool IsHiveMindConnected();
     ISet<string> GetConnectedDevicesNames(string name);
     IReadOnlyList<Connection> GetConnections();
-    void AddConnection(Connection connection, ISet<string> connectedDevicesNames);
-    void UpdateConnection(Connection connection, ISet<string> connectedDevicesNames);
-    void RemoveConnection(Connection connection, ISet<string> connectedDevicesNames);
+    void WithReadLockedForEach(Action<Connection> action);
+    bool TryAddConnection(Connection connection, IEnumerable<string> connectedDevicesNames);
+    bool TryUpdateConnection(Connection connection, IEnumerable<string> connectedDevicesNames);
+    bool TryRemoveConnection(string connectionName);
     bool IsRecalculationNeeded();
     void RecalculateHops(string currentConnectionName);
 }

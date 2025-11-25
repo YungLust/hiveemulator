@@ -7,11 +7,15 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Protobuf Include="Protos\greet.proto" GrpcServices="Server"/>
+        <Protobuf
+                Include="..\DevOpsProject.Shared\Protos\*.proto"
+                GrpcServices="Server"
+                Link="Protos\*.proto" />
     </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="Grpc.AspNetCore" Version="2.64.0"/>
+        <PackageReference Include="ProtobufOverUdp.Listener" Version="1.1.4" />
     </ItemGroup>
 
     <ItemGroup>

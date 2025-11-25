@@ -28,14 +28,14 @@ public sealed class RouterService : IRouterService
         }
     }
     
-    public Connection GetConnection(string name)
+    public Connection GetConnectionOrNull(string name)
     {
         ArgumentNullException.ThrowIfNull(name);
         
         _rwLock.EnterReadLock();
         try
         {
-            return _connections[name];
+            return _connections.GetValueOrDefault(name);
         }
         finally
         {
@@ -83,8 +83,26 @@ public sealed class RouterService : IRouterService
             _rwLock.ExitReadLock();
         }
     }
-    
-    public void AddConnection(Connection connection, ISet<string> connectedDevicesNames)
+
+    public void WithReadLockedForEach(Action<Connection> action)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        
+        _rwLock.EnterReadLock();
+        try
+        {
+            foreach (var connection in _connections.Values)
+            {
+                action(connection);
+            }
+        }
+        finally
+        {
+            _rwLock.ExitReadLock();
+        }
+    }
+
+    public bool TryAddConnection(Connection connection, IEnumerable<string> connectedDevicesNames)
     {
         ArgumentNullException.ThrowIfNull(connection);
         ArgumentNullException.ThrowIfNull(connectedDevicesNames);
@@ -92,8 +110,10 @@ public sealed class RouterService : IRouterService
         _rwLock.EnterWriteLock();
         try
         {
-            _connections.Add(connection.Name, connection);
-            _connectedDevices.Add(connection.Name, connectedDevicesNames);
+            var added = _connections.TryAdd(connection.Name, connection);
+            _connectedDevices.TryAdd(connection.Name, connectedDevicesNames.ToHashSet());
+
+            return added;
         }
         finally
         {
@@ -101,7 +121,7 @@ public sealed class RouterService : IRouterService
         }
     }
     
-    public void UpdateConnection(Connection connection, ISet<string> connectedDevicesNames)
+    public bool TryUpdateConnection(Connection connection, IEnumerable<string> connectedDevicesNames)
     {
         ArgumentNullException.ThrowIfNull(connection);
         ArgumentNullException.ThrowIfNull(connectedDevicesNames);
@@ -111,11 +131,12 @@ public sealed class RouterService : IRouterService
         {
             if (!_connections.ContainsKey(connection.Name))
             {
-                throw new KeyNotFoundException($"No connection with name {connection.Name} found.");
+                return false;
             }
             
             _connections[connection.Name] = connection;
-            _connectedDevices[connection.Name] = connectedDevicesNames;
+            _connectedDevices[connection.Name] = connectedDevicesNames.ToHashSet();
+            return true;
         }
         finally
         {
@@ -123,20 +144,21 @@ public sealed class RouterService : IRouterService
         }
     }
     
-    public void RemoveConnection(Connection connection, ISet<string> connectedDevicesNames)
+    public bool TryRemoveConnection(string connectionName)
     {
-        ArgumentNullException.ThrowIfNull(connection);
-        ArgumentNullException.ThrowIfNull(connectedDevicesNames);
+        ArgumentNullException.ThrowIfNull(connectionName);
         
         _rwLock.EnterWriteLock();
         try
         {
-            if (!_connections.Remove(connection.Name))
+            if (!_connections.Remove(connectionName))
             {
-                throw new KeyNotFoundException($"No connection with name {connection.Name} found.");
+                return false;
             }
             
-            _ = _connectedDevices.Remove(connection.Name);
+            _ = _connectedDevices.Remove(connectionName);
+            
+            return true;
         }
         finally
         {
