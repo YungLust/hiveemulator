@@ -108,6 +108,7 @@ builder.Services.AddHostedService<NetworkStatusPublisher>();
 
 builder.Services.AddUdpMessageHandler<DroneTelemetry, DroneTelemetryHandler>();
 builder.Services.AddSingleton<IDroneTelemetryService, DroneTelemetryService>();
+builder.Services.AddSingleton<IDroneService, DevOpsProject.HiveMind.Logic.Services.DroneService>();
 builder.Services.AddHostedService<DronesTelemetryLogger>();
 builder.Services.AddOptions<DronesTelemetryLoggerOptions>()
     .BindConfiguration("DronesTelemetryLoggerOptions")
