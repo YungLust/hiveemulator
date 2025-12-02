@@ -13,7 +13,9 @@ message DroneTelemetry
   Location location = 2;
   float speed = 3;
   float height = 4;
+  DroneType type = 5;
   google.protobuf.Timestamp timestamp = 6;
+  DroneState state = 7;
 }
 
 enum DroneState
@@ -21,4 +23,12 @@ enum DroneState
   DroneState_None = 0;
   DroneState_Stop = 1;
   DroneState_Move = 2;
+}
+
+enum DroneType
+{
+  DroneType_Undefined = 0;
+  DroneType_Scout = 1;
+  DroneType_Striker = 2;
+  DroneType_Relay = 3;
 }

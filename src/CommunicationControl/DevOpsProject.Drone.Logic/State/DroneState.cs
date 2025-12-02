@@ -10,11 +10,13 @@ public sealed class DroneState : IDroneState
     {
         DroneId = options.Value.DroneId;
         Location = options.Value.Location;
+        Type = options.Value.Type;
     }
     
     public string Name => Connection.GetName(DroneId, ConnectionType.Drone);
-    public string DroneId { get; set; }
+    public string DroneId { get; private set; }
     public Location Location { get; set; }
+    public DroneType Type { get; set; }
 
     public Location Destination
     {
