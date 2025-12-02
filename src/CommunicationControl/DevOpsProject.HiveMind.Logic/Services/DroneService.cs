@@ -151,7 +151,7 @@ public sealed class DroneService(
                     });
                 if (!result.Result.IsSuccess)
                 {
-                    throw new DroneRequestFailedException(result.Result.Error);
+                    logger.LogError("Drone '{DroneConnectionName}' failed to connect.", droneConnection.Name);
                 }
             });
         await Task.WhenAll(tasks);
