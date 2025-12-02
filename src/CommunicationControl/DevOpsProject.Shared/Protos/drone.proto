@@ -66,7 +66,7 @@ message DisconnectDroneResponse
 
 message MoveRequest
 {
-  Location location = 1;
+  Location destination = 1;
 }
 
 message MoveResponse

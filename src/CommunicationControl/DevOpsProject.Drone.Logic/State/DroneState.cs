@@ -38,7 +38,7 @@ public sealed class DroneState : IDroneState
     
     public DroneType Type { get; }
 
-    public Location Destination
+    public Location? Destination
     {
         get
         {

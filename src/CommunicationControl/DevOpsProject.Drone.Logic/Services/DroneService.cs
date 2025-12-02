@@ -1,28 +1,69 @@
 ﻿using DevOpsProject.Drone.Logic.Services.Interfaces;
 using DevOpsProject.Drone.Logic.State;
 using DevOpsProject.Shared.Models;
+using Microsoft.Extensions.Logging;
 
 namespace DevOpsProject.Drone.Logic.Services;
 
-public sealed class DroneService(IDroneState droneState) : IDroneService, IDisposable
+public sealed class DroneService(IDroneState droneState, ILogger<DroneService> logger) : IDroneService, IDisposable
 {
     private Timer? _movementTimer;
+    private const float _stepSize = 0.1f;
+    private readonly TimeSpan _movingInterval = TimeSpan.FromSeconds(3);
+    private readonly Lock _movementLock = new Lock();
     
-    // TODO: StartMoving()
-    // TODO: StopMoving()
-    
-    private void Move(float stepSize)
+    public void StartMoving(Location destination)
     {
-        if (droneState.State != Shared.Enums.DroneState.Moving)
+        lock (_movementLock)
         {
-            throw new InvalidOperationException("Cannot move in non-movable state");
-        }
-        
-        droneState.Location = CalculateNextPosition(stepSize);
+            if (droneState.State == Shared.Enums.DroneState.Moving)
+            {
+                logger.LogInformation("The drone is already moving, stopping movement and changing destination.");
+                StopMovingInternal();
+            }
+
+            logger.LogInformation("Starting movement. Destination: {@destination}", destination);
             
-        if (AreLocationsEqual(droneState.Location, droneState.Destination))
+            droneState.Destination = destination;
+            droneState.State = Shared.Enums.DroneState.Moving;
+            _movementTimer = new Timer(Move, null, TimeSpan.Zero, _movingInterval);
+        }
+    }
+
+    public void StopMoving()
+    {
+        lock (_movementLock)
         {
-            droneState.State = Shared.Enums.DroneState.Static;
+            if (droneState.State == Shared.Enums.DroneState.Static)
+            {
+                logger.LogInformation("The drone is already stopped.");
+                return;
+            }
+
+            StopMovingInternal();
+            logger.LogInformation("Stopping movement. Current location: {@currentLocation}", droneState.Location);
+        }
+    }
+    
+    private void StopMovingInternal()
+    {
+        _movementTimer?.Dispose();
+        _movementTimer = null;
+        droneState.Destination = null;
+        droneState.State = Shared.Enums.DroneState.Static;
+    }
+    
+    private void Move(object? state)
+    {
+        lock (_movementLock)
+        {
+            droneState.Location = CalculateNextPosition(_stepSize);
+            
+            if (AreLocationsEqual(droneState.Location, droneState.Destination!.Value))
+            {
+                StopMovingInternal();
+                logger.LogInformation("Reached destination. Current location: {@currentLocation}, Destination: {@destination}", droneState.Location, droneState.Destination!.Value);
+            }
         }
     }
     
@@ -36,9 +77,9 @@ public sealed class DroneService(IDroneState droneState) : IDroneService, IDispo
     private Location CalculateNextPosition(float stepSize)
     {
         var newLat = droneState.Location.Latitude +
-                     (droneState.Destination.Latitude - droneState.Location.Latitude) * stepSize;
+                     (droneState.Destination!.Value.Latitude - droneState.Location.Latitude) * stepSize;
         var newLon = droneState.Location.Longitude +
-                     (droneState.Destination.Longitude - droneState.Location.Longitude) * stepSize;
+                     (droneState.Destination.Value.Longitude - droneState.Location.Longitude) * stepSize;
         return new Location
         {
             Latitude = newLat,

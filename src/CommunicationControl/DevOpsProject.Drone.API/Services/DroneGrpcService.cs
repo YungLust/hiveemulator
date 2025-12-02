@@ -1,4 +1,5 @@
-﻿using DevOpsProject.Drone.Logic.State;
+﻿using DevOpsProject.Drone.Logic.Services.Interfaces;
+using DevOpsProject.Drone.Logic.State;
 using DevOpsProject.Shared.Enums;
 using DevOpsProject.Shared.Grpc;
 using DevOpsProject.Shared.Models;
@@ -6,10 +7,11 @@ using DevOpsProject.Shared.Routing;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using ConnectionType = DevOpsProject.Shared.Enums.ConnectionType;
+using Location = DevOpsProject.Shared.Models.Location;
 
 namespace DevOpsProject.Drone.API.Services;
 
-public sealed class DroneGrpcService(IRouterService routerService, IDroneState droneState) : DroneService.DroneServiceBase
+public sealed class DroneGrpcService(IRouterService routerService, IDroneState droneState, IDroneService droneService) : DroneService.DroneServiceBase
 {
     public override Task<ConnectHiveResponse> ConnectHive(ConnectHiveRequest request, ServerCallContext context)
     {
@@ -160,6 +162,36 @@ public sealed class DroneGrpcService(IRouterService routerService, IDroneState d
         connection.State = ConnectionState.Dead;
 
         return Task.FromResult(new StopDeadConnectionSimulationResponse()
+        {
+            Result = new Result()
+            {
+                IsSuccess = true
+            }
+        });
+    }
+
+    public override Task<MoveResponse> Move(MoveRequest request, ServerCallContext context)
+    {
+        droneService.StartMoving(new Location()
+        {
+            Latitude = request.Destination.Latitude,
+            Longitude = request.Destination.Longitude
+        });
+
+        return Task.FromResult(new MoveResponse()
+        {
+            Result = new Result()
+            {
+                IsSuccess = true
+            }
+        });
+    }
+
+    public override Task<StopResponse> Stop(StopRequest request, ServerCallContext context)
+    {
+        droneService.StopMoving();
+        
+        return Task.FromResult(new StopResponse()
         {
             Result = new Result()
             {
