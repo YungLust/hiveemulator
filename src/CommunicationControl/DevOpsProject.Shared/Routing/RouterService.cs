@@ -8,7 +8,7 @@ public sealed class RouterService : IRouterService
     private readonly ReaderWriterLockSlim _rwLock = new ReaderWriterLockSlim();
     
     private Dictionary<string, ISet<string>> _lastConnectedDevicesSnapshot = new();
-    private Dictionary<string, ISet<string>> _connectedDevices = new();
+    private readonly Dictionary<string, ISet<string>> _connectedDevices = new();
     private readonly Dictionary<string, Connection> _connections = new();
     
     private Dictionary<string, Connection> _nextHops = new();
