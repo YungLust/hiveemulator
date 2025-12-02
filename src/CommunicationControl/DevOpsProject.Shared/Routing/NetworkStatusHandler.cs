@@ -1,10 +1,9 @@
 ﻿using DevOpsProject.Shared.Grpc;
 using DevOpsProject.Shared.Models;
-using DevOpsProject.Shared.Routing;
 using Listener;
 using ConnectionType = DevOpsProject.Shared.Enums.ConnectionType;
 
-namespace DevOpsProject.Drone.API;
+namespace DevOpsProject.Shared.Routing;
 
 public sealed class NetworkStatusHandler(IRouterService routerService) : IUdpMessageHandler<NetworkStatus>
 {

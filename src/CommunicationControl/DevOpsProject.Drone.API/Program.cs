@@ -51,9 +51,7 @@ builder.Services.AddRouterService((opt, sp) =>
 });
 
 builder.Services.AddUdpService(builder.Configuration);
-builder.Services.AddUdpListener();
 
-builder.Services.AddUdpMessageHandler<NetworkStatus, NetworkStatusHandler>();
 builder.Services.AddOptions<NetworkStatusPublisherOptions>()
     .BindConfiguration("NetworkStatusPublisherOptions")
     .ValidateDataAnnotations()

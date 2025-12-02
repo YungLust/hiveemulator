@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using DevOpsProject.HiveMind.Logic.Models;
-using DevOpsProject.HiveMind.Logic.State;
+using DevOpsProject.HiveMind.Logic.Services.Interfaces;
 using DevOpsProject.Shared.Configuration;
 using DevOpsProject.Shared.Enums;
 using DevOpsProject.Shared.Models;
@@ -10,13 +10,18 @@ using Microsoft.Extensions.Options;
 
 namespace DevOpsProject.HiveMind.Logic.Services;
 
-public sealed class DroneService(IRouterService routerService, ILogger<DroneService> logger, IOptionsSnapshot<HiveCommunicationConfig> communicationConfigurationOptions)
+public sealed class DroneTelemetryService(IRouterService routerService, ILogger<DroneTelemetryService> logger, IOptionsSnapshot<HiveCommunicationConfig> communicationConfigurationOptions) : IDroneTelemetryService
 {
-    private readonly ConcurrentDictionary<string, DroneTelemetryModel> _drones;
+    private readonly ConcurrentDictionary<string, DroneTelemetryModel> _drones = new();
 
     public bool Add(DroneTelemetryModel model)
     {
         return _drones.TryAdd(model.Id, model);
+    }
+
+    public DroneTelemetryModel GetTelemetryModel(string droneId)
+    {
+        return _drones[droneId];
     }
     
     public bool Remove(string droneId)
@@ -24,12 +29,15 @@ public sealed class DroneService(IRouterService routerService, ILogger<DroneServ
         return _drones.TryRemove(droneId, out _);
     }
 
-    public void PrintTelemetry()
+    public void LogTelemetry()
     {
         var currentTime = DateTimeOffset.UtcNow;
 
         var hiveMindConnections = routerService.GetConnectedDevicesNames(Connection.GetName(communicationConfigurationOptions.Value.HiveID, ConnectionType.Hive));
-        logger.LogInformation("[{Timestamp}] HiveMind Connections: {ConnectionsNames}", currentTime, string.Join(", ", hiveMindConnections));
+        logger.LogInformation("[{Timestamp}] HiveMind {Id} Connections: {ConnectionsNames}", 
+            currentTime, 
+            communicationConfigurationOptions.Value.HiveID,
+            string.Join(", ", hiveMindConnections));
         
         var dronesIds = _drones.Keys.ToList();
         foreach (var droneId in dronesIds)

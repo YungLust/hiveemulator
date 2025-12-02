@@ -1,18 +1,24 @@
+using System.Net;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
+using DevOpsProject.HiveMind.API;
 using DevOpsProject.HiveMind.API.DI;
+using DevOpsProject.HiveMind.API.DronesTelemetryLogging;
 using DevOpsProject.HiveMind.API.Middleware;
 using DevOpsProject.HiveMind.Logic.Patterns.Factory.Interfaces;
+using DevOpsProject.HiveMind.Logic.Services;
 using DevOpsProject.HiveMind.Logic.Services.Interfaces;
 using DevOpsProject.Shared.Configuration;
+using DevOpsProject.Shared.Grpc;
 using DevOpsProject.Shared.Models;
 using Microsoft.AspNetCore.Mvc;
 using DevOpsProject.Shared.Models.HiveMindCommands;
-using FluentValidation;
-using Microsoft.AspNetCore.Mvc;
+using DevOpsProject.Shared.Routing;
+using Listener;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using ConnectionType = DevOpsProject.Shared.Enums.ConnectionType;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +48,45 @@ builder.Services.AddCorsConfiguration(corsPolicyName);
 
 builder.Services.AddExceptionHandler<ExceptionHandlingMiddleware>();
 builder.Services.AddProblemDetails();
+
+builder.Services.AddRouterService((opt, sp) =>
+{
+    opt.RouterUpdaterDelay = builder.Configuration.GetValue<TimeSpan>("RouterServiceOptions:RouterUpdatedDelay");
+    opt.IsAliveCheckerDelay = builder.Configuration.GetValue<TimeSpan>("RouterServiceOptions:IsAliveCheckerDelay");
+    opt.IsAliveCheckerMaxDifference = builder.Configuration.GetValue<TimeSpan>("RouterServiceOptions:IsAliveCheckerMaxDifference");
+    
+    var currentUri = new Uri((builder.Configuration["urls"]
+                              ?? builder.Configuration["ASPNETCORE_URLS"]!).Split(';', StringSplitOptions.RemoveEmptyEntries)[0]);
+    var httpGrpcPort = currentUri.Port;
+    var udpPort = ushort.Parse(Environment.GetEnvironmentVariable("UDP_PORT")!);
+    var ipAddress = Environment.GetEnvironmentVariable("IP_ADDRESS");
+    if (string.IsNullOrEmpty(ipAddress) || !IPAddress.TryParse(ipAddress, out _))
+    {
+        throw new InvalidOperationException("Provide a valid IP_ADDRESS");
+    }
+    opt.CurrentConnection = new Connection(
+        sp.GetRequiredService<IOptions<HiveCommunicationConfig>>().Value.HiveID,
+        ConnectionType.Hive,
+        ipAddress,
+        httpGrpcPort,
+        httpGrpcPort,
+        udpPort,
+        DateTimeOffset.UtcNow);
+});
+
+builder.Services.AddOptions<NetworkStatusPublisherOptions>()
+    .BindConfiguration("NetworkStatusPublisherOptions")
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+builder.Services.AddHostedService<NetworkStatusPublisher>();
+
+builder.Services.AddUdpMessageHandler<DroneTelemetry, DroneTelemetryHandler>();
+builder.Services.AddSingleton<IDroneTelemetryService, DroneTelemetryService>();
+builder.Services.AddHostedService<DronesTelemetryLogger>();
+builder.Services.AddOptions<DronesTelemetryLoggerOptions>()
+    .BindConfiguration("DronesTelemetryLoggerOptions")
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 
 var app = builder.Build();
 
