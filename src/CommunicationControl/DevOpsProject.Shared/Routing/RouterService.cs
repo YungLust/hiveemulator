@@ -184,6 +184,10 @@ public sealed class RouterService : IRouterService
             }
             
             _ = _connectedDevices.Remove(connectionName);
+            if (connectionName != _options.CurrentConnection.Name)
+            {
+                _ = _connectedDevices[_options.CurrentConnection.Name].Remove(connectionName);
+            }
             
             return true;
         }
