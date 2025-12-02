@@ -20,20 +20,14 @@ public class IsAliveConnectionChecker(ILogger<IsAliveConnectionChecker> logger, 
                 
                 routerService.WithReadLockedForEach(connection =>
                 {
-                    if (connection.State == ConnectionState.DeadNonRecoverable)
+                    if (connection.State == ConnectionState.DeadNonRecoverable
+                        || connection == options.Value.CurrentConnection)
                     {
                         return;
                     }
 
                     var difference = connection.LastUpdatedAt - connection.PreviousLastUpdatedAt;
-                    if (difference > maxDifference)
-                    {
-                        connection.State = ConnectionState.Dead;
-                    }
-                    else
-                    {
-                        connection.State = ConnectionState.Alive;
-                    }
+                    connection.State = difference > maxDifference ? ConnectionState.Dead : ConnectionState.Alive;
                 });
             }
             catch (Exception ex)

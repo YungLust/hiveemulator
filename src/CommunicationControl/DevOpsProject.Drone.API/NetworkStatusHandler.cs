@@ -13,7 +13,7 @@ public sealed class NetworkStatusHandler(IRouterService routerService) : IUdpMes
         var previousConnection = routerService.GetConnectionOrNull(Connection.GetName(message.Id, (ConnectionType) message.Type));
         var connection = new Connection(message.Id, (ConnectionType) message.Type, message.IpAddress, message.Http1Port, message.GrpcPort, message.UdpPort, message.SentAt.ToDateTimeOffset())
             {
-                PreviousLastUpdatedAt = previousConnection.LastUpdatedAt
+                PreviousLastUpdatedAt = previousConnection?.LastUpdatedAt ?? message.SentAt.ToDateTimeOffset()
             };
         _ = routerService.TryUpdateConnection(connection, message.AliveConnectionNames.ToHashSet());
         

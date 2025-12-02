@@ -1,5 +1,6 @@
 ﻿using DevOpsProject.Shared.Enums;
 using DevOpsProject.Shared.Models;
+using Microsoft.Extensions.Options;
 
 namespace DevOpsProject.Shared.Routing;
 
@@ -12,6 +13,11 @@ public sealed class RouterService : IRouterService
     private readonly Dictionary<string, Connection> _connections = new();
     
     private Dictionary<string, Connection> _nextHops = new();
+
+    public RouterService(IOptions<RouterServiceOptions> options)
+    {
+        TryAddConnection(options.Value.CurrentConnection, []);
+    }
 
     public Connection GetNextHop(string name)
     {

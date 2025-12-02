@@ -1,12 +1,14 @@
-﻿using DevOpsProject.Shared.Grpc;
+﻿using DevOpsProject.Drone.Logic.State;
+using DevOpsProject.Shared.Grpc;
 using DevOpsProject.Shared.Models;
 using DevOpsProject.Shared.Routing;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using ConnectionType = DevOpsProject.Shared.Enums.ConnectionType;
 
 namespace DevOpsProject.Drone.API.Services;
 
-public sealed class DroneGrpcService(IRouterService routerService) : DroneService.DroneServiceBase
+public sealed class DroneGrpcService(IRouterService routerService, IDroneState droneState) : DroneService.DroneServiceBase
 {
     public override Task<ConnectHiveResponse> ConnectHive(ConnectHiveRequest request, ServerCallContext context)
     {
@@ -84,6 +86,23 @@ public sealed class DroneGrpcService(IRouterService routerService) : DroneServic
                 IsSuccess = removed,
                 Error = removed ? null : "This drone is already connected"
             }
+        });
+    }
+
+    public override Task<PingResponse> Ping(PingRequest request, ServerCallContext context)
+    {
+        var connection = routerService.GetConnectionOrNull(droneState.Name)
+                         ?? throw new InvalidOperationException($"Drone connection '{droneState.Name}' does not exist");
+        
+        return Task.FromResult(new PingResponse()
+        {
+            Id = droneState.DroneId,
+            Type = Shared.Grpc.ConnectionType.Drone,
+            IpAddress = connection.IpAddress,
+            GrpcPort = connection.GrpcPort,
+            Http1Port = connection.Http1Port,
+            UdpPort = connection.UdpPort,
+            Timestamp = DateTimeOffset.UtcNow.ToTimestamp()
         });
     }
 }

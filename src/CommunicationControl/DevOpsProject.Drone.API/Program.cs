@@ -1,3 +1,4 @@
+using System.Net;
 using Common;
 using DevOpsProject.Drone.API;
 using DevOpsProject.Drone.API.Services;
@@ -17,19 +18,38 @@ builder.Services.AddGrpc(opt =>
     opt.Interceptors.Add<ReroutingGrpcInterceptor>();
 });
 builder.Services.AddGrpcClientFactory();
-builder.Services.AddRouterService((opt, sp) =>
-{
-    opt.RouterUpdaterDelay = builder.Configuration.GetValue<TimeSpan>("RouterServiceOptions:RouterUpdatedDelay");
-    opt.IsAliveCheckerDelay = builder.Configuration.GetValue<TimeSpan>("RouterServiceOptions:IsAliveCheckerDelay");
-    opt.IsAliveCheckerMaxDifference = builder.Configuration.GetValue<TimeSpan>("RouterServiceOptions:IsAliveCheckerMaxDifference");
-    opt.CurrentConnectionNameProvider = () =>
-        Connection.GetName(sp.GetRequiredService<IDroneState>().DroneId, ConnectionType.Drone);
-});
+
 builder.Services.AddOptions<DroneInitialStateOptions>()
     .BindConfiguration("DroneInitialState")
     .ValidateDataAnnotations()
     .ValidateOnStart();
 builder.Services.AddSingleton<IDroneState, DroneState>();
+
+builder.Services.AddRouterService((opt, sp) =>
+{
+    opt.RouterUpdaterDelay = builder.Configuration.GetValue<TimeSpan>("RouterServiceOptions:RouterUpdatedDelay");
+    opt.IsAliveCheckerDelay = builder.Configuration.GetValue<TimeSpan>("RouterServiceOptions:IsAliveCheckerDelay");
+    opt.IsAliveCheckerMaxDifference = builder.Configuration.GetValue<TimeSpan>("RouterServiceOptions:IsAliveCheckerMaxDifference");
+    
+    var currentUri = new Uri((builder.Configuration["urls"]
+                           ?? builder.Configuration["ASPNETCORE_URLS"]!).Split(';', StringSplitOptions.RemoveEmptyEntries)[0]);
+    var httpGrpcPort = currentUri.Port;
+    var udpPort = ushort.Parse(Environment.GetEnvironmentVariable("UDP_PORT")!);
+    var ipAddress = Environment.GetEnvironmentVariable("IP_ADDRESS");
+    if (string.IsNullOrEmpty(ipAddress) || !IPAddress.TryParse(ipAddress, out _))
+    {
+        throw new InvalidOperationException("Provide a valid IP_ADDRESS");
+    }
+    opt.CurrentConnection = new Connection(
+        sp.GetRequiredService<IDroneState>().DroneId,
+        ConnectionType.Drone,
+        ipAddress,
+        httpGrpcPort,
+        httpGrpcPort,
+        udpPort,
+        DateTimeOffset.UtcNow);
+});
+
 builder.Services.AddUdpService(builder.Configuration);
 builder.Services.AddUdpListener();
 
