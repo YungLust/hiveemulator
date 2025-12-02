@@ -29,6 +29,7 @@ public class IsAliveConnectionChecker(ILogger<IsAliveConnectionChecker> logger, 
                     var difference = connection.LastUpdatedAt - connection.PreviousLastUpdatedAt;
                     connection.State = difference > maxDifference ? ConnectionState.Dead : ConnectionState.Alive;
                 });
+                routerService.UpdateCurrentConnectionConnectedDevices();
             }
             catch (Exception ex)
             {

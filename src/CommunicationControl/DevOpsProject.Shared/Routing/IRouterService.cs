@@ -16,4 +16,5 @@ public interface IRouterService
     bool IsRecalculationNeeded();
     void RecalculateHops();
     Connection GetHiveMindConnection();
+    void UpdateCurrentConnectionConnectedDevices();
 }

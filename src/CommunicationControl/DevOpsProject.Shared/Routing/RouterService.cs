@@ -129,6 +129,24 @@ public sealed class RouterService : IRouterService
         }
     }
 
+    public void UpdateCurrentConnectionConnectedDevices()
+    {
+        _rwLock.EnterWriteLock();
+
+        try
+        {
+            _connectedDevices[_options.CurrentConnection.Name] = _connections
+                .Select(c => c.Value)
+                .Where(c => c.State == ConnectionState.Alive)
+                .Select(c => c.Name)
+                .ToHashSet();
+        }
+        finally
+        {
+            _rwLock.ExitWriteLock();
+        }
+    }
+
     public bool TryAddConnection(Connection connection, IEnumerable<string> connectedDevicesNames)
     {
         ArgumentNullException.ThrowIfNull(connection);
@@ -140,7 +158,7 @@ public sealed class RouterService : IRouterService
             var added = _connections.TryAdd(connection.Name, connection);
             _connectedDevices.TryAdd(connection.Name, connectedDevicesNames.ToHashSet());
 
-            if (connection.Name != _options.CurrentConnection.Name)
+            if (connection.Name != _options.CurrentConnection.Name && connection.State == ConnectionState.Alive)
             {
                 _connectedDevices[_options.CurrentConnection.Name].Add(connection.Name);
             }
