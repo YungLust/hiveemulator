@@ -12,14 +12,13 @@ namespace DevOpsProject.Drone.API;
 public sealed class ReroutingGrpcInterceptor(IGrpcChannelFactory grpcChannelFactory, IRouterService routerService, IDroneState droneState) : Interceptor
 {
     private static readonly ConcurrentDictionary<string, object> MethodCache = new();
-    private const string DestinationHeaderName = "dest";
 
     public override async Task<TResponse> UnaryServerHandler<TRequest, TResponse>(
         TRequest request,
         ServerCallContext context,
         UnaryServerMethod<TRequest, TResponse> continuation)
     {
-        var destination = context.RequestHeaders.FirstOrDefault(h => h.Key == DestinationHeaderName)?.Value;
+        var destination = context.RequestHeaders.FirstOrDefault(h => h.Key == RoutingConstants.DestinationHeaderName)?.Value;
         if (string.IsNullOrEmpty(destination) || destination.Equals(droneState.Name))
         {
             return await continuation(request, context);
