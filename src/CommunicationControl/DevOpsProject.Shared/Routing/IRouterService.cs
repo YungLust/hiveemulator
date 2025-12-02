@@ -15,4 +15,5 @@ public interface IRouterService
     bool TryRemoveConnection(string connectionName);
     bool IsRecalculationNeeded();
     void RecalculateHops(string currentConnectionName);
+    Connection GetHiveMindConnection();
 }

@@ -9,11 +9,11 @@ import "location.proto";
 
 message DroneTelemetry
 {
-  string droneId = 1;
+  string id = 1;
   Location location = 2;
   float speed = 3;
   float height = 4;
-  DroneType type = 5;
+  DroneType droneType = 5;
   google.protobuf.Timestamp timestamp = 6;
   DroneState state = 7;
 }

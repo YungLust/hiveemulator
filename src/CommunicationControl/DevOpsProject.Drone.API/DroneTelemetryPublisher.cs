@@ -1,0 +1,54 @@
+﻿using Common;
+using DevOpsProject.Drone.Logic.State;
+using DevOpsProject.Shared.Grpc;
+using DevOpsProject.Shared.Routing;
+using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Options;
+using DroneState = DevOpsProject.Shared.Grpc.DroneState;
+
+namespace DevOpsProject.Drone.API;
+
+public sealed class DroneTelemetryPublisher(ILogger<DroneTelemetryPublisher> logger, IUdpService udpService, IRouterService routerService, IDroneState droneState, IOptions<DroneTelemetryPublisherOptions> options) : BackgroundService
+{
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        logger.LogInformation($"Starting {nameof(DroneTelemetryPublisher)}");
+        
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            try
+            {
+                await Task.Delay(options.Value.Delay, stoppingToken);
+                
+                var message = new DroneTelemetry()
+                {
+                    Id = droneState.DroneId,
+                    DroneType = (DroneType) droneState.Type,
+                    State = (DroneState) droneState.State,
+                    Location = new Location()
+                    {
+                        Latitude = droneState.Location.Latitude,
+                        Longitude = droneState.Location.Longitude,
+                    },
+                    Speed = droneState.Speed,
+                    Height = droneState.Height,
+                    Timestamp = DateTimeOffset.UtcNow.ToTimestamp()
+                };
+                var hiveMindConnection = routerService.GetHiveMindConnection();
+                if (hiveMindConnection == null)
+                {
+                    continue;
+                }
+
+                var nextHop = routerService.GetNextHop(hiveMindConnection.Name);
+                await udpService.SendMessageAsync(message, nextHop.IpAddress, nextHop.UdpPort);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, $"Error in {nameof(DroneTelemetryPublisher)}");
+            }
+        }
+        
+        logger.LogInformation($"Stopping {nameof(DroneTelemetryPublisher)}");
+    }
+}

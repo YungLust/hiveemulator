@@ -19,7 +19,7 @@ builder.Services.AddGrpc(opt =>
 builder.Services.AddGrpcClientFactory();
 builder.Services.AddRouterService((opt, sp) =>
 {
-    opt.RouterUpdatedDelay = builder.Configuration.GetValue<TimeSpan>("RouterServiceOptions:RouterUpdatedDelay");
+    opt.RouterUpdaterDelay = builder.Configuration.GetValue<TimeSpan>("RouterServiceOptions:RouterUpdatedDelay");
     opt.IsAliveCheckerDelay = builder.Configuration.GetValue<TimeSpan>("RouterServiceOptions:IsAliveCheckerDelay");
     opt.IsAliveCheckerMaxDifference = builder.Configuration.GetValue<TimeSpan>("RouterServiceOptions:IsAliveCheckerMaxDifference");
     opt.CurrentConnectionNameProvider = () =>
@@ -32,12 +32,19 @@ builder.Services.AddOptions<DroneInitialStateOptions>()
 builder.Services.AddSingleton<IDroneState, DroneState>();
 builder.Services.AddUdpService(builder.Configuration);
 builder.Services.AddUdpListener();
+
 builder.Services.AddUdpMessageHandler<NetworkStatus, NetworkStatusHandler>();
 builder.Services.AddOptions<NetworkStatusPublisherOptions>()
     .BindConfiguration("NetworkStatusPublisherOptions")
     .ValidateDataAnnotations()
     .ValidateOnStart();
 builder.Services.AddHostedService<NetworkStatusPublisher>();
+
+builder.Services.AddOptions<DroneTelemetryPublisherOptions>()
+    .BindConfiguration("DroneTelemetryPublisherOptions")
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+builder.Services.AddHostedService<DroneTelemetryPublisher>();
 
 var app = builder.Build();
 

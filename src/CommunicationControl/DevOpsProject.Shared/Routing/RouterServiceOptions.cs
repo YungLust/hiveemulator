@@ -5,7 +5,7 @@ namespace DevOpsProject.Shared.Routing;
 public class RouterServiceOptions
 {
     [Required]
-    public TimeSpan RouterUpdatedDelay { get; set; }
+    public TimeSpan RouterUpdaterDelay { get; set; }
     [Required]
     public TimeSpan IsAliveCheckerDelay { get; set; }
     [Required]

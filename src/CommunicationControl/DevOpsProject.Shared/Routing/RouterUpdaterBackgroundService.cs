@@ -14,7 +14,7 @@ public sealed class RouterUpdaterBackgroundService(ILogger<RouterUpdaterBackgrou
         {
             try
             {
-                await Task.Delay(options.Value.RouterUpdatedDelay, stoppingToken);
+                await Task.Delay(options.Value.RouterUpdaterDelay, stoppingToken);
 
                 if (routerService.IsRecalculationNeeded())
                 {

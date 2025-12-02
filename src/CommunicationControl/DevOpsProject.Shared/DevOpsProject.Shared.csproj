@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <Protobuf Include="Protos\*.proto"
-              GrpcServices="None"
+              GrpcServices="Both"
               Access="Public"
               ProtoRoot="Protos"/>
   </ItemGroup>

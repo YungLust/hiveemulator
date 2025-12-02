@@ -55,6 +55,19 @@ public sealed class RouterService : IRouterService
             _rwLock.ExitReadLock();
         }
     }
+
+    public Connection GetHiveMindConnection()
+    {
+        _rwLock.EnterReadLock();
+        try
+        {
+            return _connections.FirstOrDefault(c => c.Value.Type == ConnectionType.Hive).Value;
+        }
+        finally
+        {
+            _rwLock.ExitReadLock();
+        }
+    }
     
     public ISet<string> GetConnectedDevicesNames(string name)
     {
