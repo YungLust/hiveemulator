@@ -3,7 +3,7 @@ using DevOpsProject.Shared.Models;
 
 namespace DevOpsProject.Drone.Logic.State;
 
-public interface IDroneState
+public interface IDroneState : ICloneable
 {
     string Name { get; }
     string DroneId { get; }

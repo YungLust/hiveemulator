@@ -12,6 +12,16 @@ public sealed class DroneState : IDroneState
         Location = options.Value.Location;
         Type = options.Value.Type;
     }
+
+    private DroneState(DroneState other)
+    {
+        DroneId = other.DroneId;
+        Location = other.Location;
+        Type = other.Type;
+        Speed = other.Speed;
+        Height = other.Height;
+        Destination = other.Destination;
+    }
     
     private readonly Lock _movementLock = new();
     
@@ -74,6 +84,14 @@ public sealed class DroneState : IDroneState
             {
                 field = value;
             }
+        }
+    }
+
+    public object Clone()
+    {
+        lock (_movementLock)
+        {
+            return new DroneState(this);
         }
     }
 }

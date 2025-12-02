@@ -19,20 +19,28 @@ public sealed class DroneTelemetryPublisher(ILogger<DroneTelemetryPublisher> log
             try
             {
                 await Task.Delay(options.Value.Delay, stoppingToken);
-                
+
+                var currentState = (IDroneState)droneState.Clone();
                 var message = new DroneTelemetry()
                 {
-                    Id = droneState.DroneId,
-                    DroneType = (DroneType) droneState.Type,
-                    State = (DroneState) droneState.State,
+                    Id = currentState.DroneId,
+                    DroneType = (DroneType) currentState.Type,
+                    State = (DroneState) currentState.State,
                     Location = new Location()
                     {
-                        Latitude = droneState.Location.Latitude,
-                        Longitude = droneState.Location.Longitude,
+                        Latitude = currentState.Location.Latitude,
+                        Longitude = currentState.Location.Longitude,
                     },
-                    Speed = droneState.Speed,
-                    Height = droneState.Height,
-                    Timestamp = DateTimeOffset.UtcNow.ToTimestamp()
+                    Speed = currentState.Speed,
+                    Height = currentState.Height,
+                    Timestamp = DateTimeOffset.UtcNow.ToTimestamp(),
+                    Destination = currentState.Destination != null 
+                    ? new Location()
+                    {
+                        Latitude = currentState.Destination.Value.Latitude,
+                        Longitude = currentState.Destination.Value.Longitude,
+                    }
+                    : null
                 };
                 var hiveMindConnection = routerService.GetHiveMindConnection();
                 if (hiveMindConnection == null)

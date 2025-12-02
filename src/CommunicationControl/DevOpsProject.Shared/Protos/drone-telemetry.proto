@@ -16,6 +16,7 @@ message DroneTelemetry
   DroneType droneType = 5;
   google.protobuf.Timestamp timestamp = 6;
   DroneState state = 7;
+  Location destination = 8;
 }
 
 enum DroneState
