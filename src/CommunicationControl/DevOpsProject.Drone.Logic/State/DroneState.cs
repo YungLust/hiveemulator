@@ -13,59 +13,67 @@ public sealed class DroneState : IDroneState
         Type = options.Value.Type;
     }
     
+    private readonly Lock _movementLock = new();
+    
     public string Name => Connection.GetName(DroneId, ConnectionType.Drone);
-    public string DroneId { get; private set; }
-    public Location Location { get; set; }
-    public DroneType Type { get; set; }
+    public string DroneId { get; }
+
+    public Location Location
+    {
+        get
+        {
+            lock (_movementLock)
+            {
+                return field;
+            }
+        }
+        set
+        {
+            lock (_movementLock)
+            {
+                field = value;
+            }
+        }
+    }
+    
+    public DroneType Type { get; }
 
     public Location Destination
     {
-        get;
+        get
+        {
+            lock (_movementLock)
+            {
+                return field;
+            }
+        }
         set
         {
-            if (!AreLocationsEqual(value, field))
+            lock (_movementLock)
             {
-                State = Shared.Enums.DroneState.Move;
+                field = value;
             }
-
-            field = value;
         }
     }
 
     public float Speed { get; set; }
     public float Height { get; set; }
-    public DevOpsProject.Shared.Enums.DroneState State { get; set; }
 
-    public void Move(float stepSize)
+    public DevOpsProject.Shared.Enums.DroneState State
     {
-        if (State != Shared.Enums.DroneState.Move)
+        get
         {
-            throw new InvalidOperationException("Cannot move in non-movable state");
+            lock (_movementLock)
+            {
+                return field;
+            }
         }
-        
-        Location = CalculateNextPosition(stepSize);
-
-        if (AreLocationsEqual(Location, Destination))
+        set
         {
-            State = Shared.Enums.DroneState.Stop;
+            lock (_movementLock)
+            {
+                field = value;
+            }
         }
-    }
-    
-    private static bool AreLocationsEqual(Location loc1, Location loc2)
-    {
-        const float tolerance = 0.000001f;
-        return Math.Abs(loc1.Latitude - loc2.Latitude) < tolerance &&
-               Math.Abs(loc1.Longitude - loc2.Longitude) < tolerance;
-    }
-
-    private Location CalculateNextPosition(float stepSize)
-    {
-        var newLat = Location.Latitude + (Destination.Latitude - Location.Latitude) * stepSize;
-        var newLon = Location.Longitude + (Destination.Longitude - Location.Longitude) * stepSize;
-        return new Location
-        {
-            Latitude = newLat,
-            Longitude = newLon
-        };
     }
 }
