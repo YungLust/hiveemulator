@@ -52,9 +52,10 @@ public sealed class DroneTelemetryService(IRouterService routerService, ILogger<
                 continue;
             }
             
-            logger.LogInformation("[{Timestamp}] {DroneId}: {ConnectionStatus} {State} Location: ({LocationLat},{LocationLon}) Destination: ({DestinationLat},{DestinationLon})", 
+            logger.LogInformation("[{Timestamp}] {DroneId}, {DroneType}: {ConnectionStatus} {State} Location: ({LocationLat},{LocationLon}) Destination: ({DestinationLat},{DestinationLon})", 
                 currentTime, 
                 droneId,
+                drone.DroneType,
                 connection.State,
                 drone.State,
                 drone.Location.Latitude,

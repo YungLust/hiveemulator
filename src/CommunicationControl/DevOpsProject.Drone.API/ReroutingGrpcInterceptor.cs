@@ -6,6 +6,7 @@ using DevOpsProject.Shared.Routing;
 using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
+using Polly;
 
 namespace DevOpsProject.Drone.API;
 
@@ -40,15 +41,23 @@ public sealed class ReroutingGrpcInterceptor(IGrpcChannelFactory grpcChannelFact
             CreateMethodDefinition<TRequest, TResponse>);
         
         var callOptions = new CallOptions(headers, context.Deadline, context.CancellationToken);
-            
-        using var call = invoker.AsyncUnaryCall(
-            methodDefinition,
-            null, 
-            callOptions, 
-            request);
+        
+        var retryPolicy = Policy
+            .Handle<RpcException>(ex =>
+                ex.StatusCode == StatusCode.Unavailable ||
+                ex.StatusCode == StatusCode.ResourceExhausted ||
+                ex.StatusCode == StatusCode.Aborted)
+            .WaitAndRetryAsync(3, i => TimeSpan.FromMilliseconds(200) * Math.Pow(2, i));
 
-        var response = await call.ResponseAsync;
-        return response;
+        return await retryPolicy.ExecuteAsync(async () =>
+        {
+            using var call = invoker.AsyncUnaryCall(
+                methodDefinition,
+                null, 
+                callOptions, 
+                request);
+            return await call.ResponseAsync;
+        });
     }
 
     private static Method<TRequest, TResponse> CreateMethodDefinition<TRequest, TResponse>(string fullMethodName)
