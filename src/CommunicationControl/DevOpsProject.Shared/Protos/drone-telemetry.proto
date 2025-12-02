@@ -21,8 +21,8 @@ message DroneTelemetry
 enum DroneState
 {
   DroneState_None = 0;
-  DroneState_Stop = 1;
-  DroneState_Move = 2;
+  DroneState_Static = 1;
+  DroneState_Moving = 2;
 }
 
 enum DroneType

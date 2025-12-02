@@ -1,5 +1,6 @@
 ﻿using DevOpsProject.Drone.Logic.Services.Interfaces;
 using DevOpsProject.Drone.Logic.State;
+using DevOpsProject.Shared.Models;
 
 namespace DevOpsProject.Drone.Logic.Services;
 
@@ -7,26 +8,21 @@ public sealed class DroneService(IDroneState droneState) : IDroneService, IDispo
 {
     private Timer? _movementTimer;
     
-    // TODO: Move()
+    // TODO: StartMoving()
     // TODO: StopMoving()
     
-    /*
-     *
-     *     public void Move(float stepSize)
+    private void Move(float stepSize)
     {
-        if (State != Shared.Enums.DroneState.Move)
+        if (droneState.State != Shared.Enums.DroneState.Moving)
         {
             throw new InvalidOperationException("Cannot move in non-movable state");
         }
-
-        lock (_movementLock)
-        {
-            _location = CalculateNextPosition(stepSize);
+        
+        droneState.Location = CalculateNextPosition(stepSize);
             
-            if (AreLocationsEqual(_location, Destination))
-            {
-                _state = Shared.Enums.DroneState.Stop;
-            }
+        if (AreLocationsEqual(droneState.Location, droneState.Destination))
+        {
+            droneState.State = Shared.Enums.DroneState.Static;
         }
     }
     
@@ -39,19 +35,16 @@ public sealed class DroneService(IDroneState droneState) : IDroneService, IDispo
 
     private Location CalculateNextPosition(float stepSize)
     {
-        lock (_movementLock)
+        var newLat = droneState.Location.Latitude +
+                     (droneState.Destination.Latitude - droneState.Location.Latitude) * stepSize;
+        var newLon = droneState.Location.Longitude +
+                     (droneState.Destination.Longitude - droneState.Location.Longitude) * stepSize;
+        return new Location
         {
-            var newLat = _location.Latitude + (Destination.Latitude - _location.Latitude) * stepSize;
-            var newLon = _location.Longitude + (Destination.Longitude - _location.Longitude) * stepSize;
-            return new Location
-            {
-                Latitude = newLat,
-                Longitude = newLon
-            };
-        }
+            Latitude = newLat,
+            Longitude = newLon
+        };
     }
-     * 
-     */
     
     public void Dispose()
     {

@@ -3,6 +3,6 @@
 public enum DroneState
 {
     None,
-    Stop,
-    Move
+    Static,
+    Moving
 }
