@@ -20,8 +20,7 @@ public sealed class NetworkStatusHandler(IRouterService routerService) : IUdpMes
         previousConnection.Http1Port = message.Http1Port;
         previousConnection.GrpcPort = message.GrpcPort;
         previousConnection.UdpPort = message.UdpPort;
-        previousConnection.PreviousLastUpdatedAt = previousConnection.LastUpdatedAt;
-        previousConnection.LastUpdatedAt = message.SentAt.ToDateTimeOffset();
+        previousConnection.LastUpdatedAt = DateTimeOffset.UtcNow;
         _ = routerService.TryUpdateConnection(previousConnection, message.AliveConnectionNames.ToHashSet());
         
         return Task.CompletedTask;

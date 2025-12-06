@@ -13,7 +13,6 @@ public sealed class Connection
     public int UdpPort { get; set; }
     public ConnectionState State { get; set; } = ConnectionState.Alive;
     public DateTimeOffset LastUpdatedAt { get; set; }
-    public DateTimeOffset PreviousLastUpdatedAt { get; set; }
 
     public Uri Http1Uri
     {
