@@ -29,7 +29,7 @@ public sealed class RouterService : IRouterService
         _rwLock.EnterReadLock();
         try
         {
-            return _nextHops[name];
+            return _nextHops.GetValueOrDefault(name);
         }
         finally
         {

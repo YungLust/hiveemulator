@@ -13,7 +13,7 @@ public static class GrpcConfiguration
         ArgumentNullException.ThrowIfNull(services);
         
         services.AddGrpcClientFactory();
-        services.AddResiliencePipeline("grpc-retry", (pipelineBuilder, context) =>
+        services.AddResiliencePipeline<string, object>("grpc-retry", (pipelineBuilder, context) =>
         {
             pipelineBuilder.AddRetry(new RetryStrategyOptions
             {

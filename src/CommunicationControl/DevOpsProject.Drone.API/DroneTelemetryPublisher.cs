@@ -49,6 +49,12 @@ public sealed class DroneTelemetryPublisher(ILogger<DroneTelemetryPublisher> log
                 }
 
                 var nextHop = routerService.GetNextHop(hiveMindConnection.Name);
+                if (nextHop == null)
+                {
+                    logger.LogError("{Name} is currently unreachable", hiveMindConnection.Name);
+                    continue;
+                }
+                
                 await udpService.SendMessageAsync(message, nextHop.IpAddress, nextHop.UdpPort);
             }
             catch (OperationCanceledException operationCanceledException) when (

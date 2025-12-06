@@ -39,10 +39,15 @@ public sealed class NetworkStatusPublisher(ILogger<NetworkStatusPublisher> logge
                     .Select(c => c.Name)
                     .ToList());
                 var tasks = routerService.GetConnections()
-                    .Where(c => c.Name != connection.Name)
                     .Select(c =>
                     {
                         var nextHop = routerService.GetNextHop(c.Name);
+                        if (nextHop == null)
+                        {
+                            logger.LogError("{Name} is currently unreachable", c.Name);
+                            return Task.CompletedTask;
+                        }
+                        
                         return udpService.SendMessageAsync(message, nextHop.IpAddress, nextHop.UdpPort);
                     });
                 

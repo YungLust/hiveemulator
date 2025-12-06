@@ -77,9 +77,9 @@ public sealed class DroneService(
                 : null));
 
         var connections = routerService.GetConnections();
-        var hiveConnection = connections.First(c => c.Type == ConnectionType.Hive);
+        var hiveConnection = routerService.GetHiveMindConnection();
         var connectionsToSend = connections
-            .Where(c => c.Type != ConnectionType.Hive && c.Name != connection.Name)
+            .Where(c => c.Name != connection.Name)
             .ToList();
 
         var connectDronesRequests = connectionsToSend
@@ -174,7 +174,7 @@ public sealed class DroneService(
         
         var connections = routerService.GetConnections();
         var connectionsToSend = connections
-            .Where(c => c.Type != ConnectionType.Hive && c.Name != droneConnection.Name)
+            .Where(c => c.Name != droneConnection.Name)
             .ToList();
         
         await DisconnectHiveFromDroneAsync(droneConnection, connectionsToSend.Select(c => c.DeviceId));

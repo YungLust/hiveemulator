@@ -11,6 +11,7 @@ public sealed class DroneState : IDroneState
         DroneId = options.Value.Id;
         Location = options.Value.Location;
         Type = options.Value.Type;
+        State = Shared.Enums.DroneState.Static;
     }
 
     private DroneState(DroneState other)
@@ -21,6 +22,7 @@ public sealed class DroneState : IDroneState
         Speed = other.Speed;
         Height = other.Height;
         Destination = other.Destination;
+        State = other.State;
     }
     
     private readonly Lock _movementLock = new();
