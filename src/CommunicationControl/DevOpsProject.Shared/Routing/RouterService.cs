@@ -118,22 +118,27 @@ public sealed class RouterService : IRouterService
         _rwLock.EnterWriteLock();
         try
         {
-            foreach (var connection in _connections.Values)
+            var connections = _connections.Values.ToList();
+            for (var i = 0; i < connections.Count; i++)
             {
-                func(connection);
-
-                if (connection.Name == _options.CurrentConnection.Name)
+                var connection = connections[i];
+                var connectionName = connection.Name;
+                
+                var newConnection = func(connection);
+                _connections[connectionName] = newConnection;
+                
+                if (connectionName == _options.CurrentConnection.Name)
                 {
                     continue;
                 }
-
-                if (connection.State == ConnectionState.Alive)
+                
+                if (newConnection.State == ConnectionState.Alive)
                 {
-                    _ = _connectedDevices[_options.CurrentConnection.Name].Add(connection.Name);
+                    _ = _connectedDevices[_options.CurrentConnection.Name].Add(connectionName);
                 }
                 else
                 {
-                    _ = _connectedDevices[_options.CurrentConnection.Name].Remove(connection.Name);
+                    _ = _connectedDevices[_options.CurrentConnection.Name].Remove(connectionName);
                 }
             }
         }
@@ -392,6 +397,8 @@ public sealed class RouterService : IRouterService
 
         return nextHops;
     }
+
+    public Connection GetCurrentConnection() => _options.CurrentConnection;
     
     private record struct Edge(int EndNode, int Weight);
 }

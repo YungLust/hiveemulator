@@ -68,7 +68,7 @@ public sealed class DroneTelemetryService(IRouterService routerService, ILogger<
             communicationConfigurationOptions.Value.HiveID,
             string.Join(", ", hiveMindConnections));
         
-        var drones = _drones.Values.ToList();
+        var drones = _drones.Values.OrderBy(d => d.Id).ToList();
         foreach (var drone in drones)
         {
             var connection = routerService.GetConnectionOrNull(Connection.GetName(drone.Id, ConnectionType.Drone));

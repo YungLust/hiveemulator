@@ -3,8 +3,10 @@ using DevOpsProject.HiveMind.Logic.Grpc;
 using DevOpsProject.HiveMind.Logic.Models;
 using DevOpsProject.HiveMind.Logic.Services.Interfaces;
 using DevOpsProject.Shared.Configuration;
+using DevOpsProject.Shared.Enums;
 using DevOpsProject.Shared.Grpc;
 using DevOpsProject.Shared.Models;
+using DevOpsProject.Shared.Models.HiveMindCommands;
 using DevOpsProject.Shared.Routing;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
@@ -243,5 +245,131 @@ public sealed class DroneService(
                 }
             });
         await Task.WhenAll(tasks);
+    }
+    
+    public async Task SimulateDeadConnectionAsync(SimulateDeadConnectionCommand command)
+    {
+        var (connection1, connection2) = (routerService.GetConnectionOrNull(command.Connection1Name), routerService.GetConnectionOrNull(command.Connection2Name));
+
+        if (connection1 == null || connection2 == null)
+        {
+            throw new DroneRequestFailedException("One of connections was not found.");
+        }
+
+        if (command.Connection1Name == command.Connection2Name)
+        {
+            throw new DroneRequestFailedException("Connection1 and Connection2 could not be the same nodes.");
+        }
+
+        var currentConnection = routerService.GetCurrentConnection();
+
+        var nextHop1 = routerService.GetNextHop(command.Connection1Name);
+        var nextHop2 = routerService.GetNextHop(command.Connection2Name);
+        var connection1IsReachable = nextHop1 != null || command.Connection1Name == currentConnection.Name;
+        var connection2IsReachable = nextHop2 != null || command.Connection2Name == currentConnection.Name;
+        if (!connection1IsReachable || !connection2IsReachable)
+        {
+            throw new DroneRequestFailedException("One of connections is unreachable.");
+        }
+
+        if (command.Connection1Name == currentConnection.Name)
+        {
+            _ = routerService.TryUpdateConnection(connection2 with
+            {
+                State = ConnectionState.DeadNonRecoverable
+            });
+        }
+        else
+        {
+            await SendSimulateDeadConnectionAsync(connection1, nextHop1, command.Connection2Name);
+        }
+
+        if (command.Connection2Name == currentConnection.Name)
+        {
+            _ = routerService.TryUpdateConnection(connection1 with
+            {
+                State = ConnectionState.DeadNonRecoverable
+            });
+        }
+        else
+        {
+            await SendSimulateDeadConnectionAsync(connection2, nextHop2, command.Connection1Name);
+        }
+    }
+
+    private async Task SendSimulateDeadConnectionAsync(Connection sendTo, Connection nextHop, string connectionName)
+    {
+        var channel = grpcChannelFactory.Create(nextHop.GrpcUri);
+        var callInvoker = channel.Intercept(retryInterceptor, logHandleExceptionInterceptor);
+        var client = new Shared.Grpc.DroneService.DroneServiceClient(callInvoker);
+
+        var result = await client.SimulateDeadConnectionAsync(new SimulateDeadConnectionRequest()
+        {
+            ConnectionName = connectionName
+        }, new Metadata()
+        {
+            {RoutingConstants.DestinationHeaderName, sendTo.Name}
+        });
+        if (!result.Result.IsSuccess)
+        {
+            logger.LogError("Simulation start failed on connection {ConnectionName} {Result}.", sendTo.Name, result);
+        }
+    }
+
+    public async Task StopDeadConnectionSimulationAsync(StopDeadConnectionSimulationCommand command)
+    {
+        var (connection1, connection2) = (routerService.GetConnectionOrNull(command.Connection1Name), routerService.GetConnectionOrNull(command.Connection2Name));
+
+        if (connection1 == null || connection2 == null)
+        {
+            throw new DroneRequestFailedException("One of connections was not found.");
+        }
+
+        if (command.Connection1Name == command.Connection2Name)
+        {
+            throw new DroneRequestFailedException("Connection1 and Connection2 could not be the same nodes.");
+        }
+        
+        var currentConnection = routerService.GetCurrentConnection();
+        
+        if (command.Connection1Name == currentConnection.Name)
+        {
+            _ = routerService.TryUpdateConnection(connection2 with
+            {
+                State = ConnectionState.Dead
+            });
+        }
+        else
+        {
+            await SendStopDeadConnectionSimulationAsync(connection1, command.Connection2Name);
+        }
+
+        if (command.Connection2Name == currentConnection.Name)
+        {
+            _ = routerService.TryUpdateConnection(connection1 with
+            {
+                State = ConnectionState.Dead
+            });
+        }
+        else
+        {
+            await SendStopDeadConnectionSimulationAsync(connection2, command.Connection1Name);
+        }
+    }
+
+    private async Task SendStopDeadConnectionSimulationAsync(Connection sendTo, string connectionName)
+    {
+        var channel = grpcChannelFactory.Create(sendTo.GrpcUri);
+        var callInvoker = channel.Intercept(retryInterceptor, logHandleExceptionInterceptor);
+        var client = new Shared.Grpc.DroneService.DroneServiceClient(callInvoker);
+
+        var result = await client.StopDeadConnectionSimulationAsync(new StopDeadConnectionSimulationRequest
+        {
+            ConnectionName = connectionName
+        });
+        if (!result.Result.IsSuccess)
+        {
+            logger.LogError("Simulation stop failed on connection {ConnectionName} {Result}.", sendTo.Name, result);
+        }
     }
 }
