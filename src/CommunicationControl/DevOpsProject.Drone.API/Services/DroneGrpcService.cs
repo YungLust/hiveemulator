@@ -59,12 +59,16 @@ public sealed class DroneGrpcService(IRouterService routerService, IDroneState d
             });
         }
         
-        var removed = routerService.TryRemoveConnection(Connection.GetName(request.Id, ConnectionType.Hive));
+        var isRemoved = routerService.TryRemoveConnection(Connection.GetName(request.Id, ConnectionType.Hive));
+        foreach (var droneId in request.DroneIds)
+        {
+            _ =  routerService.TryRemoveConnection(Connection.GetName(droneId, ConnectionType.Drone));
+        }
         return Task.FromResult(new DisconnectHiveResponse()
         {
             Result = new Result()
             {
-                IsSuccess = removed
+                IsSuccess = isRemoved
             }
         });
     }

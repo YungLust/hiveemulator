@@ -131,6 +131,7 @@ message ConnectHiveResponse
 message DisconnectHiveRequest
 {
   string id = 1;
+  repeated string droneIds = 2;
 }
 
 message DisconnectHiveResponse

@@ -190,18 +190,14 @@ public sealed class RouterService : IRouterService
         _rwLock.EnterWriteLock();
         try
         {
-            if (!_connections.Remove(connectionName))
-            {
-                return false;
-            }
-            
+            var result = _connections.Remove(connectionName);
             _ = _connectedDevices.Remove(connectionName);
             if (connectionName != _options.CurrentConnection.Name)
             {
                 _ = _connectedDevices[_options.CurrentConnection.Name].Remove(connectionName);
             }
             
-            return true;
+            return result;
         }
         finally
         {
