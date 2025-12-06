@@ -57,7 +57,6 @@ dotnet run --no-launch-profile --project DevOpsProject.Drone.API/DevOpsProject.D
 ```
 
 You can deploy second drone in another terminal window the next way:
-### Drone
 ```bash
 cd src/CommunicationControl
 
