@@ -28,7 +28,7 @@ builder.Services.AddSingleton<IDroneService, DevOpsProject.Drone.Logic.Services.
 
 builder.Services.AddRouterService(builder.Configuration, (opt, sp) =>
 {
-    opt.RouterUpdaterDelay = builder.Configuration.GetValue<TimeSpan>("RouterServiceOptions:RouterUpdatedDelay");
+    opt.RouterUpdaterDelay = builder.Configuration.GetValue<TimeSpan>("RouterServiceOptions:RouterUpdaterDelay");
     opt.IsAliveCheckerDelay = builder.Configuration.GetValue<TimeSpan>("RouterServiceOptions:IsAliveCheckerDelay");
     opt.IsAliveCheckerMaxDifference = builder.Configuration.GetValue<TimeSpan>("RouterServiceOptions:IsAliveCheckerMaxDifference");
     

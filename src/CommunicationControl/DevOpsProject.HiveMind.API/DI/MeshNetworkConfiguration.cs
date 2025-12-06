@@ -18,7 +18,7 @@ public static class MeshNetworkConfiguration
         
         services.AddRouterService(configuration, (opt, sp) =>
         {
-            opt.RouterUpdaterDelay = configuration.GetValue<TimeSpan>("RouterServiceOptions:RouterUpdatedDelay");
+            opt.RouterUpdaterDelay = configuration.GetValue<TimeSpan>("RouterServiceOptions:RouterUpdaterDelay");
             opt.IsAliveCheckerDelay = configuration.GetValue<TimeSpan>("RouterServiceOptions:IsAliveCheckerDelay");
             opt.IsAliveCheckerMaxDifference = configuration.GetValue<TimeSpan>("RouterServiceOptions:IsAliveCheckerMaxDifference");
     
