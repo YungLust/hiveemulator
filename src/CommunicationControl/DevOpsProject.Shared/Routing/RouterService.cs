@@ -267,7 +267,11 @@ public sealed class RouterService : IRouterService
 
         try
         {
-            _lastConnectedDevicesSnapshot = _connectedDevices;
+            _lastConnectedDevicesSnapshot = new Dictionary<string, ISet<string>>();
+            foreach (var (connectionName, devices) in _connectedDevices)
+            {
+                _lastConnectedDevicesSnapshot[connectionName] = new HashSet<string>(devices);
+            }
 
             var hiveMind = _connections
                 .Select(kvp => kvp.Value)

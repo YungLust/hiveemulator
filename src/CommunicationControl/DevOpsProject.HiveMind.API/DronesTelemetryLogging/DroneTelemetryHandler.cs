@@ -20,7 +20,7 @@ public sealed class DroneTelemetryHandler(IDroneTelemetryService droneTelemetryS
             message.Speed,
             message.Height,
             (DevOpsProject.Shared.Enums.DroneType)message.DroneType,
-            message.Timestamp.ToDateTimeOffset(),
+            DateTimeOffset.UtcNow,
             (DevOpsProject.Shared.Enums.DroneState)message.State,
             message.Destination != null
                 ? new Location
