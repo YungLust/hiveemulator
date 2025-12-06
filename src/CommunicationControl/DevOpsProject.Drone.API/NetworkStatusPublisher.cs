@@ -32,8 +32,8 @@ public sealed class NetworkStatusPublisher(ILogger<NetworkStatusPublisher> logge
                         var nextHop = routerService.GetNextHop(c.Name);
                         if (nextHop == null)
                         {
-                            logger.LogWarning("{Name} is currently unreachable", c.Name);
-                            return Task.CompletedTask;
+                            logger.LogWarning("{Name} is currently unreachable, trying to send network status directly", c.Name);
+                            nextHop = c;
                         }
                         
                         var message = new NetworkStatus()
