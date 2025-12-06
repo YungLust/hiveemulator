@@ -51,7 +51,7 @@ public sealed class DroneTelemetryPublisher(ILogger<DroneTelemetryPublisher> log
                 var nextHop = routerService.GetNextHop(hiveMindConnection.Name);
                 if (nextHop == null)
                 {
-                    logger.LogError("{Name} is currently unreachable", hiveMindConnection.Name);
+                    logger.LogWarning("{Name} is currently unreachable", hiveMindConnection.Name);
                     continue;
                 }
                 
