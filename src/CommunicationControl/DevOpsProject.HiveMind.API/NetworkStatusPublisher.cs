@@ -10,7 +10,7 @@ using ConnectionType = DevOpsProject.Shared.Grpc.ConnectionType;
 
 namespace DevOpsProject.HiveMind.API;
 
-public sealed class NetworkStatusPublisher(ILogger<NetworkStatusPublisher> logger, IOptionsSnapshot<HiveCommunicationConfig> communicationConfigurationOptions, IUdpService udpService, IRouterService routerService, IOptions<NetworkStatusPublisherOptions> options) : BackgroundService
+public sealed class NetworkStatusPublisher(ILogger<NetworkStatusPublisher> logger, IOptions<HiveCommunicationConfig> communicationConfigurationOptions, IUdpService udpService, IRouterService routerService, IOptions<NetworkStatusPublisherOptions> options) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {

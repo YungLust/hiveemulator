@@ -16,7 +16,7 @@ public static class MeshNetworkConfiguration
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
         
-        services.AddRouterService((opt, sp) =>
+        services.AddRouterService(configuration, (opt, sp) =>
         {
             opt.RouterUpdaterDelay = configuration.GetValue<TimeSpan>("RouterServiceOptions:RouterUpdatedDelay");
             opt.IsAliveCheckerDelay = configuration.GetValue<TimeSpan>("RouterServiceOptions:IsAliveCheckerDelay");

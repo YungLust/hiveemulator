@@ -7,7 +7,7 @@ namespace DevOpsProject.Drone.Logic.State;
 public class DroneInitialStateOptions
 {
     [Required]
-    public string DroneId { get; set; }
+    public string Id { get; set; }
     public Location Location { get; set; }
     [EnumDataType(typeof(DroneType))]
     [DeniedValues(DroneType.Undefined)]

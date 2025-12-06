@@ -7,7 +7,6 @@ using DevOpsProject.Drone.Logic.State;
 using DevOpsProject.Shared.Grpc;
 using DevOpsProject.Shared.Models;
 using DevOpsProject.Shared.Routing;
-using Listener;
 using ConnectionType = DevOpsProject.Shared.Enums.ConnectionType;
 using DroneState = DevOpsProject.Drone.Logic.State.DroneState;
 
@@ -27,7 +26,7 @@ builder.Services.AddOptions<DroneInitialStateOptions>()
 builder.Services.AddSingleton<IDroneState, DroneState>();
 builder.Services.AddSingleton<IDroneService, DevOpsProject.Drone.Logic.Services.DroneService>();
 
-builder.Services.AddRouterService((opt, sp) =>
+builder.Services.AddRouterService(builder.Configuration, (opt, sp) =>
 {
     opt.RouterUpdaterDelay = builder.Configuration.GetValue<TimeSpan>("RouterServiceOptions:RouterUpdatedDelay");
     opt.IsAliveCheckerDelay = builder.Configuration.GetValue<TimeSpan>("RouterServiceOptions:IsAliveCheckerDelay");

@@ -23,7 +23,7 @@ public sealed class DroneService(
     ResilienceInterceptor retryInterceptor, 
     IDroneTelemetryService droneTelemetryService, 
     IRouterService routerService, 
-    IOptionsSnapshot<HiveCommunicationConfig> communicationConfigurationOptions,
+    IOptions<HiveCommunicationConfig> communicationConfigurationOptions,
     ILogger<DroneService> logger) : IDroneService
 {
     public async Task ConnectDroneAsync(string ipAddress, int port)

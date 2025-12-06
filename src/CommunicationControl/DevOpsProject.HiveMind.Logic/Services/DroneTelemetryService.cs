@@ -11,7 +11,7 @@ using Microsoft.Extensions.Options;
 
 namespace DevOpsProject.HiveMind.Logic.Services;
 
-public sealed class DroneTelemetryService(IRouterService routerService, ILogger<DroneTelemetryService> logger, IOptionsSnapshot<HiveCommunicationConfig> communicationConfigurationOptions) : IDroneTelemetryService
+public sealed class DroneTelemetryService(IRouterService routerService, ILogger<DroneTelemetryService> logger, IOptions<HiveCommunicationConfig> communicationConfigurationOptions) : IDroneTelemetryService
 {
     private readonly ConcurrentDictionary<string, DroneTelemetryModel> _drones = new();
 

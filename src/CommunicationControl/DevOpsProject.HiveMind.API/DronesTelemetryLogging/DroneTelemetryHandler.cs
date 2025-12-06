@@ -6,7 +6,7 @@ using Location = DevOpsProject.Shared.Models.Location;
 
 namespace DevOpsProject.HiveMind.API.DronesTelemetryLogging;
 
-public sealed class DroneTelemetryHandler(IDroneTelemetryService droneTelemetryService, ILogger<DroneTelemetryHandler> logger) : IUdpMessageHandler<DroneTelemetry>
+public sealed class DroneTelemetryHandler(IDroneTelemetryService droneTelemetryService) : IUdpMessageHandler<DroneTelemetry>
 {
     public Task HandleAsync(DroneTelemetry message, CancellationToken token)
     {

@@ -8,7 +8,7 @@ public sealed class DroneState : IDroneState
 {
     public DroneState(IOptions<DroneInitialStateOptions> options)
     {
-        DroneId = options.Value.DroneId;
+        DroneId = options.Value.Id;
         Location = options.Value.Location;
         Type = options.Value.Type;
     }
