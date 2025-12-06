@@ -95,16 +95,15 @@ public sealed class DroneService(
                     Timestamp = DateTimeOffset.UtcNow.ToTimestamp()
                 };
                 request.AliveConnectionNames.AddRange(routerService.GetConnectedDevicesNames(c.DeviceId));
-                return (c, request);
+                return request;
             })
             .ToList();
 
         await ConnectHiveToDroneAsync(hiveConnection, connectDronesRequests, channel);
-
-        await ConnectDroneToDronesAsync(connectDronesRequests);
+        await ConnectDroneToDronesAsync(connectionsToSend, pingResponse);
     }
 
-    private async Task ConnectHiveToDroneAsync(Connection hiveConnection, List<(Connection connection, ConnectDroneRequest request)> connectDronesRequests, GrpcChannel channel)
+    private async Task ConnectHiveToDroneAsync(Connection hiveConnection, List<ConnectDroneRequest> connectDronesRequests, GrpcChannel channel)
     {
         var request = new ConnectHiveRequest()
         {
@@ -114,10 +113,9 @@ public sealed class DroneService(
             GrpcPort = hiveConnection.GrpcPort,
             UdpPort = hiveConnection.UdpPort,
             Timestamp = DateTimeOffset.UtcNow.ToTimestamp(),
-
         };
         request.AliveConnectionNames.AddRange(routerService.GetConnectedDevicesNames(hiveConnection.Name));
-        request.Drones.AddRange(connectDronesRequests.Select(r => r.request));
+        request.Drones.AddRange(connectDronesRequests);
         
         var callInvoker = channel.Intercept(retryInterceptor, logHandleExceptionInterceptor);
         var client = new Shared.Grpc.DroneService.DroneServiceClient(callInvoker);
@@ -128,12 +126,11 @@ public sealed class DroneService(
         }
     }
     
-    private async Task ConnectDroneToDronesAsync(List<(Connection connection, ConnectDroneRequest request)> connectDronesRequests)
+    private async Task ConnectDroneToDronesAsync(IEnumerable<Connection> droneConnections, PingResponse pingResponse)
     {
-        var tasks = connectDronesRequests
-            .Select(async item =>
+        var tasks = droneConnections
+            .Select(async droneConnection =>
             {
-                var (droneConnection, droneRequest) = item;
                 var nextHop = routerService.GetNextHop(droneConnection.Name);
                 if (nextHop == null)
                 {
@@ -144,7 +141,17 @@ public sealed class DroneService(
                 var connectionChannel = grpcChannelFactory.Create(nextHop.GrpcUri);
                 var connectionCallInvoker = connectionChannel.Intercept(retryInterceptor, logHandleExceptionInterceptor);
                 var connectionClient = new Shared.Grpc.DroneService.DroneServiceClient(connectionCallInvoker);
-                var result = await connectionClient.ConnectDroneAsync(droneRequest,
+                var request = new ConnectDroneRequest()
+                {
+                    Id = pingResponse.Id,
+                    IpAddress = pingResponse.IpAddress,
+                    Http1Port = pingResponse.Http1Port,
+                    GrpcPort = pingResponse.GrpcPort,
+                    UdpPort = pingResponse.UdpPort,
+                    Timestamp = DateTimeOffset.UtcNow.ToTimestamp()
+                };
+                var result = await connectionClient.ConnectDroneAsync(
+                    request,
                     headers: new Metadata()
                     {
                         {RoutingConstants.DestinationHeaderName, droneConnection.Name},
