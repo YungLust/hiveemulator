@@ -62,7 +62,7 @@ cd src/CommunicationControl
 
 $env:IP_ADDRESS = "127.0.0.1"
 $env:UDP_PORT = 5383
-dotnet run --no-launch-profile --project DevOpsProject.Drone.API/DevOpsProject.Drone.API.csproj --urls="http://localhost:5283" -- DroneInitialState:Id="2" DroneInitialState:Type="Striker"
+dotnet run --no-launch-profile --project DevOpsProject.Drone.API/DevOpsProject.Drone.API.csproj --urls="http://localhost:5283" -- DroneInitialState:Id="2" DroneInitialState:Type="Striker" DroneInitialState:Location:Latitude=48.7 DroneInitialState:Location:Longitude=38
 
 ```
 
