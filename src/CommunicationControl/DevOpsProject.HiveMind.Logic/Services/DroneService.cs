@@ -2,6 +2,7 @@
 using DevOpsProject.HiveMind.Logic.Grpc;
 using DevOpsProject.HiveMind.Logic.Models;
 using DevOpsProject.HiveMind.Logic.Services.Interfaces;
+using DevOpsProject.HiveMind.Logic.State;
 using DevOpsProject.Shared.Configuration;
 using DevOpsProject.Shared.Grpc;
 using DevOpsProject.Shared.Models;
@@ -471,6 +472,8 @@ public sealed class DroneService(
                 Longitude = destination.Longitude
             }
         };
+        
+        HiveInMemoryState.Destination = destination;
 
         await SendToAllAsync(connections, async (client, connection) =>
         {
@@ -489,6 +492,8 @@ public sealed class DroneService(
     {
         var connections = routerService.GetConnections();
         var request = new StopRequest();
+
+        HiveInMemoryState.Destination = null;
         
         await SendToAllAsync(connections, async (client, connection) =>
         {
