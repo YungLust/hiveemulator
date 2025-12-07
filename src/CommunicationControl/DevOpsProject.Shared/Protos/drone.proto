@@ -148,7 +148,7 @@ message StopSendingNetworkStatusRequest
 
 message StopSendingNetworkStatusResponse
 {
-  
+  Result result = 1;
 }
 
 message RestartSendingNetworkStatusRequest
@@ -158,5 +158,5 @@ message RestartSendingNetworkStatusRequest
 
 message RestartSendingNetworkStatusResponse
 {
-
+  Result result = 1;
 }

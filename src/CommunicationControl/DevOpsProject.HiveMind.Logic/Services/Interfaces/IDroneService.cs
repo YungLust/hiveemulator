@@ -8,4 +8,6 @@ public interface IDroneService
     Task DisconnectDroneAsync(string droneId, bool force);
     Task SimulateDeadConnectionAsync(SimulateDeadConnectionCommand command);
     Task StopDeadConnectionSimulationAsync(StopDeadConnectionSimulationCommand command);
+    Task SimulateDroneStoppedOperatingAsync(SimulateDroneStoppedOperatingCommand command);
+    Task StopDroneStoppedOperatingSimulationAsync(StopDroneStoppedOperatingSimulationCommand command);
 }

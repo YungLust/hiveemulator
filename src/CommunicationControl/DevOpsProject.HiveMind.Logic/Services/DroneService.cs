@@ -370,4 +370,51 @@ public sealed class DroneService(
             logger.LogError("Simulation stop failed on connection {ConnectionName} {Result}.", sendTo.Name, result);
         }
     }
+    
+    public async Task SimulateDroneStoppedOperatingAsync(SimulateDroneStoppedOperatingCommand command)
+    {
+        var connection = routerService.GetConnectionOrNull(Connection.GetName(command.DroneId, ConnectionType.Drone));
+        if (connection == null)
+        {
+            throw new DroneRequestFailedException("Drone was not found.");
+        }
+
+        var nextHop = routerService.GetNextHop(connection.Name);
+        if (nextHop == null)
+        {
+            throw new DroneRequestFailedException("Drone is unreachable.");
+        }
+        
+        var channel = grpcChannelFactory.Create(nextHop.GrpcUri);
+        var callInvoker = channel.Intercept(retryInterceptor, logHandleExceptionInterceptor);
+        var client = new Shared.Grpc.DroneService.DroneServiceClient(callInvoker);
+
+        var result = await client.StopSendingNetworkStatusAsync(new StopSendingNetworkStatusRequest(), new Metadata()
+        {
+            {RoutingConstants.DestinationHeaderName, connection.Name}
+        });
+        if (!result.Result.IsSuccess)
+        {
+            throw new DroneRequestFailedException(result.Result.Error);
+        }
+    }
+
+    public async Task StopDroneStoppedOperatingSimulationAsync(StopDroneStoppedOperatingSimulationCommand command)
+    {
+        var connection = routerService.GetConnectionOrNull(Connection.GetName(command.DroneId, ConnectionType.Drone));
+        if (connection == null)
+        {
+            throw new DroneRequestFailedException("Drone was not found.");
+        }
+        
+        var channel = grpcChannelFactory.Create(connection.GrpcUri);
+        var callInvoker = channel.Intercept(retryInterceptor, logHandleExceptionInterceptor);
+        var client = new Shared.Grpc.DroneService.DroneServiceClient(callInvoker);
+
+        var result = await client.RestartSendingNetworkStatusAsync(new RestartSendingNetworkStatusRequest());
+        if (!result.Result.IsSuccess)
+        {
+            throw new DroneRequestFailedException(result.Result.Error);
+        }
+    }
 }

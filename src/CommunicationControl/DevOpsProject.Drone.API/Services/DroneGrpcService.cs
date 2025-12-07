@@ -229,4 +229,30 @@ public sealed class DroneGrpcService(
             }
         });
     }
+
+    public override Task<StopSendingNetworkStatusResponse> StopSendingNetworkStatus(StopSendingNetworkStatusRequest request, ServerCallContext context)
+    {
+        simulationService.Stop();
+
+        return Task.FromResult(new StopSendingNetworkStatusResponse()
+        {
+            Result = new Result()
+            {
+                IsSuccess = true
+            }
+        });
+    }
+
+    public override Task<RestartSendingNetworkStatusResponse> RestartSendingNetworkStatus(RestartSendingNetworkStatusRequest request, ServerCallContext context)
+    {
+        simulationService.Restart();
+
+        return Task.FromResult(new RestartSendingNetworkStatusResponse()
+        {
+            Result = new Result()
+            {
+                IsSuccess = true
+            }
+        });
+    }
 }

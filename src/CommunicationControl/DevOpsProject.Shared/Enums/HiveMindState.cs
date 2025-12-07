@@ -12,5 +12,7 @@
         DeleteDrone,
         SimulateDeadConnection,
         StopDeadConnectionSimulation,
+        SimulateDroneStoppedOperating,
+        StopDroneStoppedOperatingSimulation,
     }
 }

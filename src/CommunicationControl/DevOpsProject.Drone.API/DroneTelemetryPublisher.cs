@@ -21,6 +21,10 @@ public sealed class DroneTelemetryPublisher(ILogger<DroneTelemetryPublisher> log
             try
             {
                 await Task.Delay(options.Value.Delay, stoppingToken);
+                if (simulationService.IsStopped)
+                {
+                    continue;
+                }
                 
                 var hiveMindConnection = routerService.GetHiveMindConnection();
                 if (hiveMindConnection == null || simulationService.IsIgnoredConnection(hiveMindConnection.Name))
