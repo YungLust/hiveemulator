@@ -19,7 +19,8 @@ public sealed class DroneGrpcService(
 {
     public override Task<ConnectHiveResponse> ConnectHive(ConnectHiveRequest request, ServerCallContext context)
     {
-        if (routerService.IsHiveMindConnected())
+        var hiveMindConnection = routerService.GetHiveMindConnection();
+        if (hiveMindConnection != null && hiveMindConnection.Name != Connection.GetName(request.Id, ConnectionType.Hive))
         {
             return Task.FromResult(new ConnectHiveResponse()
             {
