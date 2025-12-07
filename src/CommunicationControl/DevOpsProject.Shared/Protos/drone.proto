@@ -9,6 +9,7 @@ import "result.proto";
 import "location.proto";
 import "drone-telemetry.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
 
 service DroneService
 {
@@ -96,6 +97,7 @@ message StopResponse
 message SimulateDeadConnectionRequest
 {
   string connectionName = 1;
+  google.protobuf.Duration duration = 2;
 }
 
 message SimulateDeadConnectionResponse
@@ -143,7 +145,7 @@ message DisconnectHiveResponse
 
 message StopSendingNetworkStatusRequest
 {
-  
+  google.protobuf.Duration duration = 1;
 }
 
 message StopSendingNetworkStatusResponse

@@ -3,9 +3,9 @@
 public interface ISimulationService
 {
     bool IsStopped { get; }
-    void Stop();
+    void Stop(TimeSpan? duration = null);
     void Restart();
-    bool AddIgnoredConnection(string connectionName);
     bool RemoveIgnoredConnection(string connectionName);
     bool IsIgnoredConnection(string connectionName);
+    bool AddIgnoredConnection(string connectionName, TimeSpan? duration = null);
 }

@@ -4,22 +4,35 @@ namespace DevOpsProject.Drone.Logic.Services;
 
 public sealed class SimulationService : ISimulationService
 {
-    public bool IsStopped {get; set;}
-    public ISet<string> IgnoredConnectionNames {get;} = new HashSet<string>();
+    public bool IsStopped => _isStoppedForever || (_stopTime.HasValue && _stopTime >= DateTimeOffset.UtcNow);
+    private bool _isStoppedForever;
+    private DateTimeOffset? _stopTime;
+    public IDictionary<string, DateTimeOffset?> IgnoredConnectionNames {get;} = new Dictionary<string, DateTimeOffset?>();
     
-    public void Stop()
+    public void Stop(TimeSpan? duration)
     {
-        IsStopped = true;
+        if (duration.HasValue)
+        {
+            _isStoppedForever = false;
+            _stopTime = DateTimeOffset.UtcNow.Add(duration.Value);
+        }
+        else
+        {
+            _isStoppedForever = true;
+            _stopTime = null;
+        }
     }
     
     public void Restart()
     {
-        IsStopped = false;
+        _isStoppedForever = false;
+        _stopTime = null;
     }
     
-    public bool AddIgnoredConnection(string connectionName)
+    public bool AddIgnoredConnection(string connectionName, TimeSpan? duration)
     {
-        return IgnoredConnectionNames.Add(connectionName);
+        IgnoredConnectionNames[connectionName] = !duration.HasValue ? null : DateTimeOffset.UtcNow.Add(duration.Value);
+        return true;
     }
 
     public bool RemoveIgnoredConnection(string connectionName)
@@ -29,6 +42,7 @@ public sealed class SimulationService : ISimulationService
 
     public bool IsIgnoredConnection(string connectionName)
     {
-        return IgnoredConnectionNames.Contains(connectionName);
+        var containsName = IgnoredConnectionNames.TryGetValue(connectionName, out var ignoredConnection);
+        return containsName && (!ignoredConnection.HasValue || ignoredConnection.Value >= DateTimeOffset.UtcNow);
     }
 }

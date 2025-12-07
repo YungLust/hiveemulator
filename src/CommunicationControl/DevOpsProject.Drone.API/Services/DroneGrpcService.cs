@@ -153,7 +153,7 @@ public sealed class DroneGrpcService(
             });
         }
         
-        var result = simulationService.AddIgnoredConnection(request.ConnectionName);
+        var result = simulationService.AddIgnoredConnection(request.ConnectionName, request.Duration?.ToTimeSpan());
 
         return Task.FromResult(new SimulateDeadConnectionResponse()
         {
@@ -232,7 +232,7 @@ public sealed class DroneGrpcService(
 
     public override Task<StopSendingNetworkStatusResponse> StopSendingNetworkStatus(StopSendingNetworkStatusRequest request, ServerCallContext context)
     {
-        simulationService.Stop();
+        simulationService.Stop(request.Duration?.ToTimeSpan());
 
         return Task.FromResult(new StopSendingNetworkStatusResponse()
         {

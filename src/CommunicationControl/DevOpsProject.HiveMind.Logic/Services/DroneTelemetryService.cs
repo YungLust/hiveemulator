@@ -39,6 +39,11 @@ public sealed class DroneTelemetryService(IRouterService routerService, ILogger<
         var values = _drones.Values
             .Where(c => routerService.GetConnectionOrNull(Connection.GetName(c.Id, ConnectionType.Drone))?.State == ConnectionState.Alive)
             .ToList();
+        if (values.Count == 0)
+        {
+            return;
+        }
+        
         var averageLatitude = values.Where(x => x.Location != null).Average(x => x.Location.Value.Latitude);
         var averageLongitude = values.Where(x => x.Location != null).Average(x => x.Location.Value.Longitude);
         HiveInMemoryState.CurrentLocation = new Location()

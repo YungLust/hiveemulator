@@ -4,11 +4,12 @@ namespace DevOpsProject.HiveMind.Logic.Services;
 
 public sealed class SimulationService : ISimulationService
 {
-    public ISet<string> IgnoredConnectionNames {get;} = new HashSet<string>();
+    public IDictionary<string, DateTimeOffset?> IgnoredConnectionNames {get;} = new Dictionary<string, DateTimeOffset?>();
     
-    public bool AddIgnoredConnection(string connectionName)
+    public bool AddIgnoredConnection(string connectionName, TimeSpan? duration)
     {
-        return IgnoredConnectionNames.Add(connectionName);
+        IgnoredConnectionNames[connectionName] = !duration.HasValue ? null : DateTimeOffset.UtcNow.Add(duration.Value);
+        return true;
     }
 
     public bool RemoveIgnoredConnection(string connectionName)
@@ -18,6 +19,7 @@ public sealed class SimulationService : ISimulationService
 
     public bool IsIgnoredConnection(string connectionName)
     {
-        return IgnoredConnectionNames.Contains(connectionName);
+        var containsName = IgnoredConnectionNames.TryGetValue(connectionName, out var ignoredConnection);
+        return containsName && (!ignoredConnection.HasValue || ignoredConnection.Value >= DateTimeOffset.UtcNow);
     }
 }

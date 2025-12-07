@@ -260,24 +260,24 @@ public sealed class DroneService(
 
         if (command.Connection1Name == currentConnection.Name)
         {
-            _ = simulationService.AddIgnoredConnection(command.Connection2Name);
+            _ = simulationService.AddIgnoredConnection(command.Connection2Name, command.Duration);
         }
         else
         {
-            await SendSimulateDeadConnectionAsync(connection1, nextHop1, command.Connection2Name);
+            await SendSimulateDeadConnectionAsync(connection1, nextHop1, command.Connection2Name, command.Duration);
         }
 
         if (command.Connection2Name == currentConnection.Name)
         {
-            _ = simulationService.AddIgnoredConnection(command.Connection1Name);
+            _ = simulationService.AddIgnoredConnection(command.Connection1Name, command.Duration);
         }
         else
         {
-            await SendSimulateDeadConnectionAsync(connection2, nextHop2, command.Connection1Name);
+            await SendSimulateDeadConnectionAsync(connection2, nextHop2, command.Connection1Name, command.Duration);
         }
     }
 
-    private async Task SendSimulateDeadConnectionAsync(Connection sendTo, Connection nextHop, string connectionName)
+    private async Task SendSimulateDeadConnectionAsync(Connection sendTo, Connection nextHop, string connectionName, TimeSpan? duration)
     {
         var channel = grpcChannelFactory.Create(nextHop.GrpcUri);
         var callInvoker = channel.Intercept(retryInterceptor, logHandleExceptionInterceptor);
@@ -285,7 +285,8 @@ public sealed class DroneService(
 
         var result = await client.SimulateDeadConnectionAsync(new SimulateDeadConnectionRequest()
         {
-            ConnectionName = connectionName
+            ConnectionName = connectionName,
+            Duration = duration.HasValue ? Duration.FromTimeSpan(duration.Value) : null
         }, new Metadata()
         {
             {RoutingConstants.DestinationHeaderName, sendTo.Name}
@@ -365,7 +366,10 @@ public sealed class DroneService(
         var callInvoker = channel.Intercept(retryInterceptor, logHandleExceptionInterceptor);
         var client = new Shared.Grpc.DroneService.DroneServiceClient(callInvoker);
 
-        var result = await client.StopSendingNetworkStatusAsync(new StopSendingNetworkStatusRequest(), new Metadata()
+        var result = await client.StopSendingNetworkStatusAsync(new StopSendingNetworkStatusRequest()
+        {
+            Duration = command.Duration.HasValue ? Duration.FromTimeSpan(command.Duration.Value) : null
+        }, new Metadata()
         {
             {RoutingConstants.DestinationHeaderName, connection.Name}
         });
