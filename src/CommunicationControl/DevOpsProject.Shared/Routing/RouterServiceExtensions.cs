@@ -28,7 +28,7 @@ public static class RouterServiceExtensions
 
     public static IServiceCollection AddNetworkStatusPublisher<TNetworkStatusPublisher>(this IServiceCollection services) where TNetworkStatusPublisher : NetworkStatusPublisherBase
     {
-        services.AddOptions<TNetworkStatusPublisher>()
+        services.AddOptions<NetworkStatusPublisherOptions>()
             .BindConfiguration("NetworkStatusPublisherOptions")
             .ValidateDataAnnotations()
             .ValidateOnStart();
