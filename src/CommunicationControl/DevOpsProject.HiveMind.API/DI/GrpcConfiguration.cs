@@ -35,7 +35,7 @@ public static class GrpcConfiguration
                 UseJitter = true
             });
         });
-        services.AddSingleton<LogHandleExceptionInterceptor>();
+        services.AddSingleton<LogExceptionInterceptor>();
         
         return services;
     }

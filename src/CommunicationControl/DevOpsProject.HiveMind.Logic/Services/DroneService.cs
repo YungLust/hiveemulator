@@ -22,7 +22,7 @@ using Location = DevOpsProject.Shared.Models.Location;
 namespace DevOpsProject.HiveMind.Logic.Services;
 
 public sealed class DroneService(
-    LogHandleExceptionInterceptor logHandleExceptionInterceptor, 
+    LogExceptionInterceptor logExceptionInterceptor, 
     IGrpcChannelFactory grpcChannelFactory, 
     IDroneTelemetryService droneTelemetryService, 
     IRouterService routerService, 
@@ -123,7 +123,7 @@ public sealed class DroneService(
         request.AliveConnectionNames.AddRange(routerService.GetConnectedDevicesNames(hiveConnection.Name));
         request.Drones.AddRange(connectDronesRequests);
         
-        var callInvoker = channel.Intercept(logHandleExceptionInterceptor);
+        var callInvoker = channel.Intercept(logExceptionInterceptor);
         var client = new Shared.Grpc.DroneService.DroneServiceClient(callInvoker);
         var connectionResult = await _pipeline.ExecuteAsync(async ct => await client.ConnectHiveAsync(request, headers: GetMetadata(), cancellationToken: ct));
         if (!connectionResult.Result.IsSuccess)
@@ -196,7 +196,7 @@ public sealed class DroneService(
             }
         
             var channel = grpcChannelFactory.Create(nextHop.GrpcUri);
-            var callInvoker = channel.Intercept(logHandleExceptionInterceptor);
+            var callInvoker = channel.Intercept(logExceptionInterceptor);
             var client = new Shared.Grpc.DroneService.DroneServiceClient(callInvoker);
 
             var request = new DisconnectHiveRequest()
@@ -286,7 +286,7 @@ public sealed class DroneService(
             }
         
             var channel = grpcChannelFactory.Create(nextHop.GrpcUri);
-            var callInvoker = channel.Intercept(logHandleExceptionInterceptor);
+            var callInvoker = channel.Intercept(logExceptionInterceptor);
             var client = new Shared.Grpc.DroneService.DroneServiceClient(callInvoker);
             
             return await client.SimulateDeadConnectionAsync(new SimulateDeadConnectionRequest()
@@ -339,7 +339,7 @@ public sealed class DroneService(
     private async Task SendStopDeadConnectionSimulationAsync(Connection sendTo, string connectionName)
     {
         var channel = grpcChannelFactory.Create(sendTo.GrpcUri);
-        var callInvoker = channel.Intercept(logHandleExceptionInterceptor);
+        var callInvoker = channel.Intercept(logExceptionInterceptor);
         var client = new Shared.Grpc.DroneService.DroneServiceClient(callInvoker);
 
         var result = await _pipeline.ExecuteAsync(async ct => await client.StopDeadConnectionSimulationAsync(new StopDeadConnectionSimulationRequest
@@ -369,7 +369,7 @@ public sealed class DroneService(
             }
         
             var channel = grpcChannelFactory.Create(nextHop.GrpcUri);
-            var callInvoker = channel.Intercept(logHandleExceptionInterceptor);
+            var callInvoker = channel.Intercept(logExceptionInterceptor);
             var client = new Shared.Grpc.DroneService.DroneServiceClient(callInvoker);
             
             return await client.StopSendingNetworkStatusAsync(new StopSendingNetworkStatusRequest()
@@ -392,7 +392,7 @@ public sealed class DroneService(
         }
         
         var channel = grpcChannelFactory.Create(connection.GrpcUri);
-        var callInvoker = channel.Intercept(logHandleExceptionInterceptor);
+        var callInvoker = channel.Intercept(logExceptionInterceptor);
         var client = new Shared.Grpc.DroneService.DroneServiceClient(callInvoker);
 
         var result = await _pipeline
@@ -460,7 +460,7 @@ public sealed class DroneService(
 
                 var connectionChannel = grpcChannelFactory.Create(nextHop.GrpcUri);
                 var connectionCallInvoker =
-                    connectionChannel.Intercept(logHandleExceptionInterceptor);
+                    connectionChannel.Intercept(logExceptionInterceptor);
                 var connectionClient = new Shared.Grpc.DroneService.DroneServiceClient(connectionCallInvoker);
                 await send(connectionClient, c);
             });

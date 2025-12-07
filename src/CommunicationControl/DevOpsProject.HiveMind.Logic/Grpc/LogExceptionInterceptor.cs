@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace DevOpsProject.HiveMind.Logic.Grpc;
 
-public sealed class LogHandleExceptionInterceptor(ILogger<LogHandleExceptionInterceptor> logger) : Interceptor
+public sealed class LogExceptionInterceptor(ILogger<LogExceptionInterceptor> logger) : Interceptor
 {
     public override AsyncUnaryCall<TResponse> AsyncUnaryCall<TRequest, TResponse>(
         TRequest request,
