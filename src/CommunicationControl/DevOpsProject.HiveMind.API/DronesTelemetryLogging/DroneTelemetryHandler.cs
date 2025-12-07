@@ -30,9 +30,15 @@ public sealed class DroneTelemetryHandler(IDroneTelemetryService droneTelemetryS
                 }
                 : null
         );
-        
-        droneTelemetryService.Update(updatedDroneTelemetry);
-        droneTelemetryService.UpdateHiveMindLocation();
+
+        try
+        {
+            droneTelemetryService.Update(updatedDroneTelemetry);
+            droneTelemetryService.UpdateHiveMindLocation();
+        }
+        catch (KeyNotFoundException)
+        {
+        }
         
         return Task.CompletedTask;
     }
