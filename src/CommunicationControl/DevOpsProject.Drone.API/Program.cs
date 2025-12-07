@@ -15,6 +15,10 @@ using DroneState = DevOpsProject.Drone.Logic.State.DroneState;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddOptions<GrpcResilienceOptions>()
+    .BindConfiguration("GrpcResilienceOptions")
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 builder.Services.AddGrpc(opt =>
 {
     opt.Interceptors.Add<ReroutingGrpcInterceptor>();

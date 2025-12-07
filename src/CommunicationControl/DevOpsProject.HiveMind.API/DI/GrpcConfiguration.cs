@@ -1,6 +1,7 @@
 ﻿using DevOpsProject.HiveMind.Logic.Grpc;
 using DevOpsProject.Shared.Grpc;
 using Grpc.Core;
+using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Retry;
 
@@ -12,9 +13,14 @@ public static class GrpcConfiguration
     {
         ArgumentNullException.ThrowIfNull(services);
         
+        services.AddOptions<GrpcResilienceOptions>()
+            .BindConfiguration("GrpcResilienceOptions")
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
         services.AddGrpcClientFactory();
         services.AddResiliencePipeline<string, object>("grpc-retry", (pipelineBuilder, context) =>
         {
+            var options = context.ServiceProvider.GetRequiredService<IOptions<GrpcResilienceOptions>>().Value;
             pipelineBuilder.AddRetry(new RetryStrategyOptions
             {
                 ShouldHandle = new PredicateBuilder()
@@ -23,8 +29,8 @@ public static class GrpcConfiguration
                         ex.StatusCode == StatusCode.Aborted ||
                         ex.StatusCode == StatusCode.ResourceExhausted),
         
-                MaxRetryAttempts = 3,
-                Delay = TimeSpan.FromMilliseconds(500),
+                MaxRetryAttempts = options.MaxRetryAttempts,
+                Delay = options.InitialDelay,
                 BackoffType = DelayBackoffType.Exponential,
                 UseJitter = true
             });
