@@ -24,7 +24,7 @@ public static class GrpcConfiguration
                         ex.StatusCode == StatusCode.ResourceExhausted),
         
                 MaxRetryAttempts = 3,
-                Delay = TimeSpan.FromMilliseconds(200),
+                Delay = TimeSpan.FromMilliseconds(500),
                 BackoffType = DelayBackoffType.Exponential,
                 UseJitter = true
             });
