@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
 using DevOpsProject.HiveMind.API.DI;
@@ -17,6 +18,11 @@ builder.Host.UseSerilog((context, services, loggerConfig) =>
     loggerConfig.ReadFrom.Configuration(context.Configuration)
                 .ReadFrom.Services(services)
                 .Enrich.FromLogContext());
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
 builder.Services.AddApiVersioningConfiguration();
 
