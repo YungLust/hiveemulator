@@ -57,11 +57,7 @@ builder.Services.AddRouterService(builder.Configuration, (opt, sp) =>
 
 builder.Services.AddUdpService(builder.Configuration);
 
-builder.Services.AddOptions<NetworkStatusPublisherOptions>()
-    .BindConfiguration("NetworkStatusPublisherOptions")
-    .ValidateDataAnnotations()
-    .ValidateOnStart();
-builder.Services.AddHostedService<NetworkStatusPublisher>();
+builder.Services.AddNetworkStatusPublisher<NetworkStatusPublisher>();
 
 builder.Services.AddOptions<DroneTelemetryPublisherOptions>()
     .BindConfiguration("DroneTelemetryPublisherOptions")

@@ -41,11 +41,7 @@ public static class MeshNetworkConfiguration
                 DateTimeOffset.UtcNow);
         });
 
-        services.AddOptions<NetworkStatusPublisherOptions>()
-            .BindConfiguration("NetworkStatusPublisherOptions")
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-        services.AddHostedService<NetworkStatusPublisher>();
+        services.AddNetworkStatusPublisher<NetworkStatusPublisher>();
 
         services.AddUdpMessageHandler<DroneTelemetry, DroneTelemetryHandler>();
         services.AddHostedService<DronesTelemetryLogger>();

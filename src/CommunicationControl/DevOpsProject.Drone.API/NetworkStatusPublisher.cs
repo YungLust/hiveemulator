@@ -10,61 +10,41 @@ using ConnectionType = DevOpsProject.Shared.Grpc.ConnectionType;
 
 namespace DevOpsProject.Drone.API;
 
-public sealed class NetworkStatusPublisher(ILogger<NetworkStatusPublisher> logger, IUdpService udpService, IRouterService routerService, IDroneState droneState, IOptions<NetworkStatusPublisherOptions> options, ISimulationUtility simulationUtility) : BackgroundService
+public sealed class NetworkStatusPublisher(ILogger<NetworkStatusPublisher> logger, IUdpService udpService, IRouterService routerService, IDroneState droneState, IOptions<NetworkStatusPublisherOptions> options, ISimulationUtility simulationUtility) : NetworkStatusPublisherBase(logger, options)
 {
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task PublishStatusAsync()
     {
-        logger.LogInformation("Starting NetworkStatusPublisher");
-        
-        while (!stoppingToken.IsCancellationRequested)
+        if (simulationUtility.IsStopped)
         {
-            try
-            {
-                await Task.Delay(options.Value.Delay, stoppingToken);
-                if (simulationUtility.IsStopped)
-                {
-                    continue;
-                }
-
-                var connection = routerService.GetConnectionOrNull(droneState.Name)
-                                 ?? throw new InvalidOperationException($"Drone connection '{droneState.Name}' does not exist");
-
-                var tasks = routerService.GetConnections()
-                    .Where(c => !simulationUtility.IsIgnoredConnection(c.Name))
-                    .Select(c =>
-                    {
-                        var message = new NetworkStatus()
-                        {
-                            Id = droneState.DroneId,
-                            Type = ConnectionType.Drone,
-                            IpAddress = connection.IpAddress,
-                            Http1Port = connection.Http1Port,
-                            GrpcPort = connection.GrpcPort,
-                            UdpPort = connection.UdpPort,
-                            SentAt = DateTimeOffset.UtcNow.ToTimestamp()
-                        };
-                        message.AliveConnectionNames.AddRange(routerService
-                            .GetConnections()
-                            .Where(conn => conn.State == ConnectionState.Alive)
-                            .Select(conn => conn.Name)
-                            .ToList());
-                        
-                        return udpService.SendMessageAsync(message, c.IpAddress, c.UdpPort);
-                    });
-                
-                await Task.WhenAll(tasks);
-            }
-            catch (OperationCanceledException operationCanceledException) when (
-                operationCanceledException.CancellationToken == stoppingToken || stoppingToken.IsCancellationRequested)
-            {
-                break;
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e, "Error in NetworkStatusPublisher");
-            }
+            return;
         }
-        
-        logger.LogInformation("Stopping NetworkStatusPublisher");
+
+        var connection = routerService.GetConnectionOrNull(droneState.Name)
+                         ?? throw new InvalidOperationException($"Drone connection '{droneState.Name}' does not exist");
+
+        var tasks = routerService.GetConnections()
+            .Where(c => !simulationUtility.IsIgnoredConnection(c.Name))
+            .Select(c =>
+            {
+                var message = new NetworkStatus()
+                {
+                    Id = droneState.DroneId,
+                    Type = ConnectionType.Drone,
+                    IpAddress = connection.IpAddress,
+                    Http1Port = connection.Http1Port,
+                    GrpcPort = connection.GrpcPort,
+                    UdpPort = connection.UdpPort,
+                    SentAt = DateTimeOffset.UtcNow.ToTimestamp()
+                };
+                message.AliveConnectionNames.AddRange(routerService
+                    .GetConnections()
+                    .Where(conn => conn.State == ConnectionState.Alive)
+                    .Select(conn => conn.Name)
+                    .ToList());
+                        
+                return udpService.SendMessageAsync(message, c.IpAddress, c.UdpPort);
+            });
+                
+        await Task.WhenAll(tasks);
     }
 }

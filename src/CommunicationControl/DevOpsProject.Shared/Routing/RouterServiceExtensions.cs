@@ -25,4 +25,15 @@ public static class RouterServiceExtensions
         
         return services;
     }
+
+    public static IServiceCollection AddNetworkStatusPublisher<TNetworkStatusPublisher>(this IServiceCollection services) where TNetworkStatusPublisher : NetworkStatusPublisherBase
+    {
+        services.AddOptions<TNetworkStatusPublisher>()
+            .BindConfiguration("NetworkStatusPublisherOptions")
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+        services.AddHostedService<TNetworkStatusPublisher>();
+        
+        return services;
+    }
 }

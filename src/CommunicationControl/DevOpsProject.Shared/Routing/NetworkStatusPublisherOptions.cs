@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DevOpsProject.Drone.API;
+namespace DevOpsProject.Shared.Routing;
 
 public class NetworkStatusPublisherOptions
 {
