@@ -48,9 +48,9 @@ public sealed class DroneService(
         {
             pingResponse = await _pipeline.ExecuteAsync(async ct => await client.PingAsync(new PingRequest(), headers: GetMetadata(), cancellationToken: ct));
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            throw new DroneRequestFailedException("Failed to ping drone", ex);
+            throw new DroneRequestFailedException("Failed to ping drone");
         }
         var connection = new Connection(
             pingResponse.Id,
