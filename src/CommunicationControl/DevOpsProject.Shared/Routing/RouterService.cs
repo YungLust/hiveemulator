@@ -224,6 +224,7 @@ public sealed class RouterService : IRouterService
             var connection = connections[i];
             if (!ConnectionCanRedirect(connection))
             {
+                adjacencyList[i] = [];
                 continue;
             }
 
