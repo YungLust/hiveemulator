@@ -18,14 +18,14 @@ public sealed class SimulationGrpcInterceptor(ISimulationUtility simulationUtili
             var simulationLatency = simulationUtility.BadDeviceLatency;
             if (simulationLatency.HasValue)
             {
-                logger.LogWarning($"Simulation - drone delay {simulationLatency.Value}.");
+                logger.LogWarning("Simulation - drone delay {SimulationLatency}.", simulationLatency.Value);
                 await Task.Delay(simulationLatency.Value);
             }
             
             var connectionSimulationLatency = simulationUtility.GetBadConnectionLatency(previousHopHeader.Value);
             if (connectionSimulationLatency.HasValue)
             {
-                logger.LogWarning($"Simulation - connection delay {connectionSimulationLatency.Value}.");
+                logger.LogWarning("Simulation - connection delay {ConnectionSimulationLatency}.", connectionSimulationLatency.Value);
                 await Task.Delay(connectionSimulationLatency.Value);
             }
         }
