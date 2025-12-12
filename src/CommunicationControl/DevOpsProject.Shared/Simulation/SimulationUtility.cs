@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace DevOpsProject.Shared.Simulation;
 
@@ -13,6 +14,11 @@ public sealed class SimulationUtility : ISimulationUtility
     
     public void SimulateBadDevice(BadDeviceDto badDevice)
     {
+        if (_badDevice is not null)
+        {
+            StopBadDeviceSimulation();
+        }
+        
         _badDevice = DevOpsProject.Shared.Simulation.BadDevice.FromDto(badDevice);
     }
 
@@ -49,6 +55,15 @@ public sealed class SimulationUtility : ISimulationUtility
 
     public void SimulateBadConnection(BadConnectionDto badConnection)
     {
-        _connections[badConnection.Name] = BadConnection.FromDto(badConnection);
+        var badConnectionModel = BadConnection.FromDto(badConnection);
+        _connections.AddOrUpdate(
+            badConnectionModel.Name,
+            _ => badConnectionModel,
+            (_, old) =>
+            {
+                old.CancellationTokenSource.Cancel();
+                old.Dispose();
+                return badConnectionModel;
+            });
     }
 }
