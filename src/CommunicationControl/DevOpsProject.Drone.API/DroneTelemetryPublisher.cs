@@ -52,20 +52,23 @@ public sealed class DroneTelemetryPublisher(ILogger<DroneTelemetryPublisher> log
                     UdpDest = hiveMindConnection.Name
                 };
 
-                var simulationLatency = simulationUtility.BadDeviceLatency;
-                if (simulationLatency.HasValue)
+                _ = Task.Run(async () =>        // UDP is fire-and-forget anyway, it is ok here.
                 {
-                    await Task.Delay(simulationLatency.Value, stoppingToken);
-                }
+                    var simulationLatency = simulationUtility.BadDeviceLatency;
+                    if (simulationLatency.HasValue)
+                    {
+                        await Task.Delay(simulationLatency.Value, stoppingToken);
+                    }
 
-                var nextHop = routerService.GetNextHop(hiveMindConnection.Name);
-                if (nextHop == null)
-                {
-                    logger.LogWarning("{Name} is currently unreachable", hiveMindConnection.Name);
-                    continue;
-                }
-                
-                await udpService.SendMessageAsync(message, nextHop.IpAddress, nextHop.UdpPort);
+                    var nextHop = routerService.GetNextHop(hiveMindConnection.Name);
+                    if (nextHop == null)
+                    {
+                        logger.LogWarning("{Name} is currently unreachable", hiveMindConnection.Name);
+                        return;
+                    }
+
+                    await udpService.SendMessageAsync(message, nextHop.IpAddress, nextHop.UdpPort);
+                }, stoppingToken);
             }
             catch (OperationCanceledException operationCanceledException) when (
                 operationCanceledException.CancellationToken == stoppingToken || stoppingToken.IsCancellationRequested)
