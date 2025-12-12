@@ -4,4 +4,5 @@ public static class RoutingConstants
 {
     public const string DestinationHeaderName = "dest";
     public const string PreviousHopHeaderName = "prev";
+    public const string OriginalDeadlineHeaderName = "original-deadline";
 }

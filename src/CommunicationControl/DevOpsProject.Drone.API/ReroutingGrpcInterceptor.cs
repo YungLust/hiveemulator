@@ -34,6 +34,21 @@ public sealed class ReroutingGrpcInterceptor(IGrpcChannelFactory grpcChannelFact
             headers.Add(RoutingConstants.PreviousHopHeaderName, routerService.GetCurrentConnection().Name);
         }
 
+        DateTime originalDeadline;
+        var originalDeadlineHeader = context.RequestHeaders.FirstOrDefault(h => h.Key == RoutingConstants.OriginalDeadlineHeaderName);
+        if (originalDeadlineHeader == null)
+        {
+            originalDeadline = context.Deadline;
+            if (originalDeadline != DateTime.MaxValue)
+            {
+                headers.Add(RoutingConstants.OriginalDeadlineHeaderName, originalDeadline.ToString("O"));
+            }
+        }
+        else
+        {
+            originalDeadline = DateTime.Parse(originalDeadlineHeader.Value).ToUniversalTime();
+        }
+
         var methodDefinition = (Method<TRequest, TResponse>) MethodCache.GetOrAdd(
             context.Method, 
             CreateMethodDefinition<TRequest, TResponse>);
@@ -48,7 +63,7 @@ public sealed class ReroutingGrpcInterceptor(IGrpcChannelFactory grpcChannelFact
 
         return await retryPolicy.ExecuteAsync(async () =>
         {
-            var callOptions = new CallOptions(headers, GetNewDeadline(context.Deadline), context.CancellationToken);
+            var callOptions = new CallOptions(headers, GetNewDeadline(originalDeadline), context.CancellationToken);
             
             var destinationConnection = routerService.GetNextHop(destination);
             if (destinationConnection == null)
