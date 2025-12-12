@@ -8,7 +8,6 @@ public sealed class RouterService : IRouterService
 {
     private readonly ReaderWriterLockSlim _rwLock = new ReaderWriterLockSlim();
     
-    private Dictionary<string, List<ForeignConnection>> _lastConnectedDevicesSnapshot = new();
     private readonly Dictionary<string, List<ForeignConnection>> _connectedDevices = new();
     private readonly Dictionary<string, Connection> _connections = new();
     
@@ -124,7 +123,7 @@ public sealed class RouterService : IRouterService
             if (connection.Name != _options.CurrentConnection.Name
                 && _connectedDevices[_options.CurrentConnection.Name].All(c => c.ConnectionName != connection.Name))
             {
-                _connectedDevices[_options.CurrentConnection.Name].Add(new ForeignConnection(connection.Name, connection.LastUpdatedAt));
+                _connectedDevices[_options.CurrentConnection.Name].Add(new ForeignConnection(connection.Name, connection.LastUpdatedAt, connection.Latency));
             }
             
             _nextHops[connection.Name] = connection;
@@ -158,11 +157,44 @@ public sealed class RouterService : IRouterService
 
                 if (currentConnectionIndex != -1)
                 {
-                    _connectedDevices[_options.CurrentConnection.Name][currentConnectionIndex] = new ForeignConnection(connection.Name, connection.LastUpdatedAt);
+                    _connectedDevices[_options.CurrentConnection.Name][currentConnectionIndex] = new ForeignConnection(connection.Name, connection.LastUpdatedAt, connection.Latency);
                 }
             }
             
             return true;
+        }
+        finally
+        {
+            _rwLock.ExitWriteLock();
+        }
+    }
+
+    public void UpdateLatencies(Func<Connection, TimeSpan> getLatency)
+    {
+        _rwLock.EnterWriteLock();
+        try
+        {
+            var connections = _connections.Values.ToList();
+            foreach (var connection in connections)
+            {
+                if (connection.Name == _options.CurrentConnection.Name)
+                {
+                    continue;
+                }
+                
+                var latency = getLatency(connection);
+                    
+                var currentConnectionIndex = _connectedDevices[_options.CurrentConnection.Name]
+                    .FindIndex(c => c.ConnectionName == connection.Name);
+
+                if (currentConnectionIndex != -1)
+                {
+                    _connectedDevices[_options.CurrentConnection.Name][currentConnectionIndex] = _connectedDevices[_options.CurrentConnection.Name][currentConnectionIndex] with
+                    {
+                        LastLatency = latency
+                    };
+                }
+            }
         }
         finally
         {
@@ -199,18 +231,10 @@ public sealed class RouterService : IRouterService
     
     public void RecalculateHops()
     {
-        var currentConnectionName = _options.CurrentConnection.Name;
-        
         _rwLock.EnterWriteLock();
 
         try
         {
-            _lastConnectedDevicesSnapshot = new Dictionary<string, List<ForeignConnection>>();
-            foreach (var (connectionName, devices) in _connectedDevices)
-            {
-                _lastConnectedDevicesSnapshot[connectionName] = new List<ForeignConnection>(devices);
-            }
-            
             _nextHops = new Dictionary<string, Connection>();
             
             RecalculateHopsInternal();
@@ -247,7 +271,7 @@ public sealed class RouterService : IRouterService
             var adjacentNodes = _connectedDevices[connection.Name]
                 .Where(c => connectionIndexes.ContainsKey(c.ConnectionName))
                 .Where(c => currentConnectionCanRedirect || c.ConnectionName != currentConnectionName)
-                .Select(c => new Edge(connectionIndexes[c.ConnectionName], (currentTime - c.LastUpdatedAt).Ticks))
+                .Select(c => new Edge(connectionIndexes[c.ConnectionName], c.LastLatency.Ticks))
                 .ToList();
             adjacencyList[i] = adjacentNodes;
         }

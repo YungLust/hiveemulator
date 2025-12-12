@@ -8,9 +8,7 @@ public class RouterServiceOptions
     [Required]
     public TimeSpan RouterUpdaterDelay { get; set; }
     [Required]
-    public TimeSpan IsAliveCheckerDelay { get; set; }
-    [Required]
-    public TimeSpan IsAliveCheckerMaxDifference { get; set; }
-    [Required]
     public Connection CurrentConnection { get; set; }
+    [Required]
+    public TimeSpan AdditionalLateDelay { get; set; }
 }

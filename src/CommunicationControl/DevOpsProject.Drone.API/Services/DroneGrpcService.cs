@@ -34,13 +34,13 @@ public sealed class DroneGrpcService(
         }
         
         routerService.AddOrUpdateConnection(
-            new Connection(request.Id, ConnectionType.Hive, request.IpAddress, request.Http1Port, request.GrpcPort, request.UdpPort, request.Timestamp.ToDateTimeOffset()),
-            request.Connections.Select(c => new ForeignConnection(c.Name, c.LastUpdatedAt.ToDateTimeOffset())));
+            new Connection(request.Id, ConnectionType.Hive, request.IpAddress, request.Http1Port, request.GrpcPort, request.UdpPort, request.Timestamp.ToDateTimeOffset(), DateTimeOffset.UtcNow),
+            request.Connections.Select(c => new ForeignConnection(c.Name, c.LastUpdatedAt.ToDateTimeOffset(), c.Latency.ToTimeSpan())));
         foreach (var drone in request.Drones)
         {
             routerService.AddOrUpdateConnection(
-                new Connection(drone.Id, ConnectionType.Drone, drone.IpAddress, drone.Http1Port, drone.GrpcPort, drone.UdpPort, drone.Timestamp.ToDateTimeOffset()),
-                drone.Connections.Select(c => new ForeignConnection(c.Name, c.LastUpdatedAt.ToDateTimeOffset())));
+                new Connection(drone.Id, ConnectionType.Drone, drone.IpAddress, drone.Http1Port, drone.GrpcPort, drone.UdpPort, drone.Timestamp.ToDateTimeOffset(), DateTimeOffset.UtcNow),
+                drone.Connections.Select(c => new ForeignConnection(c.Name, c.LastUpdatedAt.ToDateTimeOffset(), c.Latency.ToTimeSpan())));
         }
         return Task.FromResult(new ConnectHiveResponse()
         {
@@ -82,8 +82,8 @@ public sealed class DroneGrpcService(
     public override Task<ConnectDroneResponse> ConnectDrone(ConnectDroneRequest request, ServerCallContext context)
     {
         routerService.AddOrUpdateConnection(
-            new Connection(request.Id, ConnectionType.Drone, request.IpAddress, request.Http1Port, request.GrpcPort, request.UdpPort, request.Timestamp.ToDateTimeOffset()),
-            request.Connections.Select(c => new ForeignConnection(c.Name, c.LastUpdatedAt.ToDateTimeOffset())));
+            new Connection(request.Id, ConnectionType.Drone, request.IpAddress, request.Http1Port, request.GrpcPort, request.UdpPort, request.Timestamp.ToDateTimeOffset(), DateTimeOffset.UtcNow),
+            request.Connections.Select(c => new ForeignConnection(c.Name, c.LastUpdatedAt.ToDateTimeOffset(), c.Latency.ToTimeSpan())));
         return Task.FromResult(new ConnectDroneResponse()
         {
             Result = new Result()

@@ -2,7 +2,7 @@
 
 namespace DevOpsProject.Shared.Models;
 
-public sealed record Connection(string DeviceId, ConnectionType Type, string IpAddress, int Http1Port, int GrpcPort, int UdpPort, DateTimeOffset LastUpdatedAt) 
+public sealed record Connection(string DeviceId, ConnectionType Type, string IpAddress, int Http1Port, int GrpcPort, int UdpPort, DateTimeOffset LastUpdatedAt, DateTimeOffset LastServerTime) 
 {
     public string Name => GetName(DeviceId, Type);
 
@@ -28,6 +28,8 @@ public sealed record Connection(string DeviceId, ConnectionType Type, string IpA
             return builder.Uri;
         }
     }
+    
+    public TimeSpan Latency => LastServerTime - LastUpdatedAt;
     
     public static string GetName(string deviceId, ConnectionType type)
         => $"{type.ToString().ToLower()}:{deviceId}";

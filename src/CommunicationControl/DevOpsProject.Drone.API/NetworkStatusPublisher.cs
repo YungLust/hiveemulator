@@ -1,6 +1,5 @@
 ﻿using Common;
 using DevOpsProject.Drone.Logic.State;
-using DevOpsProject.Shared.Enums;
 using DevOpsProject.Shared.Grpc;
 using DevOpsProject.Shared.Routing;
 using DevOpsProject.Shared.Simulation;
@@ -36,6 +35,7 @@ public sealed class NetworkStatusPublisher(ILogger<NetworkStatusPublisher> logge
                     {
                         Name = conn.Name,
                         LastUpdatedAt = conn.LastUpdatedAt.ToTimestamp(),
+                        Latency = conn.Latency.ToDuration()
                     })
                     .ToList());
                 

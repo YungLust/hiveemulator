@@ -15,4 +15,5 @@ public interface IRouterService
     void RecalculateHops();
     Connection GetHiveMindConnection();
     Connection GetCurrentConnection();
+    void UpdateLatencies(Func<Connection, TimeSpan> getLatency);
 }

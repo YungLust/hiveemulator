@@ -19,8 +19,7 @@ public static class MeshNetworkConfiguration
         services.AddRouterService(configuration, (opt, sp) =>
         {
             opt.RouterUpdaterDelay = configuration.GetValue<TimeSpan>("RouterServiceOptions:RouterUpdaterDelay");
-            opt.IsAliveCheckerDelay = configuration.GetValue<TimeSpan>("RouterServiceOptions:IsAliveCheckerDelay");
-            opt.IsAliveCheckerMaxDifference = configuration.GetValue<TimeSpan>("RouterServiceOptions:IsAliveCheckerMaxDifference");
+            opt.AdditionalLateDelay = configuration.GetValue<TimeSpan>("RouterServiceOptions:AdditionalLateDelay");
     
             var currentUri = new Uri((configuration["urls"]
                                       ?? configuration["ASPNETCORE_URLS"]!).Split(';', StringSplitOptions.RemoveEmptyEntries)[0]);
@@ -31,6 +30,7 @@ public static class MeshNetworkConfiguration
             {
                 throw new InvalidOperationException("Provide a valid IP_ADDRESS");
             }
+            var currentTime = DateTimeOffset.UtcNow;
             opt.CurrentConnection = new Connection(
                 sp.GetRequiredService<IOptions<HiveCommunicationConfig>>().Value.HiveID,
                 Shared.Enums.ConnectionType.Hive,
@@ -38,7 +38,8 @@ public static class MeshNetworkConfiguration
                 httpGrpcPort,
                 httpGrpcPort,
                 udpPort,
-                DateTimeOffset.UtcNow);
+                currentTime,
+                currentTime);
         });
 
         services.AddNetworkStatusPublisher<NetworkStatusPublisher>();

@@ -38,8 +38,7 @@ builder.Services.AddSimulationUtility();
 builder.Services.AddRouterService(builder.Configuration, (opt, sp) =>
 {
     opt.RouterUpdaterDelay = builder.Configuration.GetValue<TimeSpan>("RouterServiceOptions:RouterUpdaterDelay");
-    opt.IsAliveCheckerDelay = builder.Configuration.GetValue<TimeSpan>("RouterServiceOptions:IsAliveCheckerDelay");
-    opt.IsAliveCheckerMaxDifference = builder.Configuration.GetValue<TimeSpan>("RouterServiceOptions:IsAliveCheckerMaxDifference");
+    opt.AdditionalLateDelay = builder.Configuration.GetValue<TimeSpan>("RouterServiceOptions:AdditionalLateDelay");
     
     var currentUri = new Uri((builder.Configuration["urls"]
                            ?? builder.Configuration["ASPNETCORE_URLS"]!).Split(';', StringSplitOptions.RemoveEmptyEntries)[0]);
@@ -50,6 +49,7 @@ builder.Services.AddRouterService(builder.Configuration, (opt, sp) =>
     {
         throw new InvalidOperationException("Provide a valid IP_ADDRESS");
     }
+    var currentTime = DateTimeOffset.UtcNow;
     opt.CurrentConnection = new Connection(
         sp.GetRequiredService<IDroneState>().DroneId,
         ConnectionType.Drone,
@@ -57,7 +57,8 @@ builder.Services.AddRouterService(builder.Configuration, (opt, sp) =>
         httpGrpcPort,
         httpGrpcPort,
         udpPort,
-        DateTimeOffset.UtcNow);
+        currentTime,
+        currentTime);
 });
 
 builder.Services.AddUdpService(builder.Configuration);

@@ -16,6 +16,7 @@ public static class RouterServiceExtensions
             .ValidateOnStart();
         services.AddSingleton<IRouterService, RouterService>();
         services.AddHostedService<RouterUpdaterBackgroundService>();
+        services.AddHostedService<LateLatencyUpdater>();
 
         services.AddUdpService(configuration);
         services.AddUdpListener(opt => opt.IgnoreConnectionResetErrors = true);

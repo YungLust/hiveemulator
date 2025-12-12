@@ -37,6 +37,7 @@ public sealed class NetworkStatusPublisher(ILogger<NetworkStatusPublisher> logge
                     {
                         Name = conn.Name,
                         LastUpdatedAt = conn.LastUpdatedAt.ToTimestamp(),
+                        Latency = conn.Latency.ToDuration()
                     })
                     .ToList());
                 

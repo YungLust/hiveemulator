@@ -22,10 +22,11 @@ public sealed class NetworkStatusHandler(IRouterService routerService) : IUdpMes
             Http1Port = message.Http1Port,
             GrpcPort = message.GrpcPort,
             UdpPort = message.UdpPort,
-            LastUpdatedAt = message.SentAt.ToDateTimeOffset()
+            LastUpdatedAt = message.SentAt.ToDateTimeOffset(),
+            LastServerTime = DateTimeOffset.UtcNow
         };
         
-        _ = routerService.TryUpdateConnection(connection, message.Connections.Select(c => new ForeignConnection(c.Name, c.LastUpdatedAt.ToDateTimeOffset())));
+        _ = routerService.TryUpdateConnection(connection, message.Connections.Select(c => new ForeignConnection(c.Name, c.LastUpdatedAt.ToDateTimeOffset(), c.Latency.ToTimeSpan())));
         return Task.CompletedTask;
     }
 }

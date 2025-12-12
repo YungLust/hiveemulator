@@ -63,7 +63,8 @@ public sealed class DroneService(
             pingResponse.Http1Port,
             pingResponse.GrpcPort,
             pingResponse.UdpPort,
-            pingResponse.Timestamp.ToDateTimeOffset());
+            pingResponse.Timestamp.ToDateTimeOffset(),
+            DateTimeOffset.UtcNow);
         routerService.AddOrUpdateConnection(connection, []);
         _ = droneTelemetryService.TryAdd(new DroneTelemetryModel(
             pingResponse.Id,
@@ -109,7 +110,8 @@ public sealed class DroneService(
                     .Select(d => new ForeignConnection()
                     {
                         Name = d.ConnectionName,
-                        LastUpdatedAt = d.LastUpdatedAt.ToTimestamp()
+                        LastUpdatedAt = d.LastUpdatedAt.ToTimestamp(),
+                        Latency = d.LastLatency.ToDuration()
                     }));
                 return request;
             })
@@ -134,7 +136,8 @@ public sealed class DroneService(
             .Select(d => new ForeignConnection()
             {
                 Name = d.ConnectionName,
-                LastUpdatedAt = d.LastUpdatedAt.ToTimestamp()
+                LastUpdatedAt = d.LastUpdatedAt.ToTimestamp(),
+                Latency = d.LastLatency.ToDuration()
             }));
         request.Drones.AddRange(connectDronesRequests);
         
