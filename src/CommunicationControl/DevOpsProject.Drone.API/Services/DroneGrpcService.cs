@@ -154,7 +154,7 @@ public sealed class DroneGrpcService(
             });
         }
         
-        simulationUtility.SimulateBadConnection(new BadConnection(request.ConnectionName, request.Latency.ToTimeSpan(), request.Duration?.ToTimeSpan()));
+        simulationUtility.SimulateBadConnection(new BadConnectionDto(request.ConnectionName, request.Latency.ToTimeSpan(), request.Duration?.ToTimeSpan()));
 
         return Task.FromResult(new SimulateBadConnectionResponse()
         {
@@ -223,7 +223,7 @@ public sealed class DroneGrpcService(
 
     public override Task<SimulateBadDeviceResponse> SimulateBadDevice(SimulateBadDeviceRequest request, ServerCallContext context)
     {
-        simulationUtility.SimulateBadDevice(new BadDevice(request.Latency.ToTimeSpan(), request.Duration?.ToTimeSpan()));
+        simulationUtility.SimulateBadDevice(new BadDeviceDto(request.Latency.ToTimeSpan(), request.Duration?.ToTimeSpan()));
 
         return Task.FromResult(new SimulateBadDeviceResponse()
         {

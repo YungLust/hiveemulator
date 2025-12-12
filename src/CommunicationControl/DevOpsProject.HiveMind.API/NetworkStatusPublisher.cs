@@ -43,10 +43,10 @@ public sealed class NetworkStatusPublisher(ILogger<NetworkStatusPublisher> logge
 
                 _ = Task.Run(async () =>        // UDP is fire-and-forget anyway, it is ok here.
                 {
-                    var connectionSimulationLatency = simulationUtility.GetBadConnectionLatency(c.Name);
-                    if (connectionSimulationLatency.HasValue)
+                    var deviceSimulation = simulationUtility.GetBadConnection(c.Name);
+                    if (deviceSimulation != null)
                     {
-                        await Task.Delay(connectionSimulationLatency.Value);
+                        await Task.Delay(deviceSimulation.Latency, deviceSimulation.CancellationToken);
                     }
 
                     await udpService.SendMessageAsync(message, c.IpAddress, c.UdpPort);

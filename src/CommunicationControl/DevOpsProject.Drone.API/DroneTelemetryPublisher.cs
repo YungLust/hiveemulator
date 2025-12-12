@@ -54,10 +54,10 @@ public sealed class DroneTelemetryPublisher(ILogger<DroneTelemetryPublisher> log
 
                 _ = Task.Run(async () =>        // UDP is fire-and-forget anyway, it is ok here.
                 {
-                    var simulationLatency = simulationUtility.BadDeviceLatency;
-                    if (simulationLatency.HasValue)
+                    var deviceSimulation = simulationUtility.BadDevice;
+                    if (deviceSimulation != null)
                     {
-                        await Task.Delay(simulationLatency.Value, stoppingToken);
+                        await Task.Delay(deviceSimulation.Latency, deviceSimulation.CancellationToken);
                     }
 
                     var nextHop = routerService.GetNextHop(hiveMindConnection.Name);

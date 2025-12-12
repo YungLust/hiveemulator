@@ -4,37 +4,51 @@ namespace DevOpsProject.Shared.Simulation;
 
 public sealed class SimulationUtility : ISimulationUtility
 {
-    public TimeSpan? BadDeviceLatency => _badDevice is { IsActive: true }
-        ? _badDevice.Latency
+    public BadDeviceDto BadDevice => _badDevice is { IsActive: true }
+        ? _badDevice.ToDto()
         : null;
     private BadDevice _badDevice;
     
     private readonly ConcurrentDictionary<string, BadConnection> _connections = new();
     
-    public void SimulateBadDevice(BadDevice badDevice)
+    public void SimulateBadDevice(BadDeviceDto badDevice)
     {
-        _badDevice = badDevice;
+        _badDevice = DevOpsProject.Shared.Simulation.BadDevice.FromDto(badDevice);
     }
 
     public void StopBadDeviceSimulation()
     {
+        if (_badDevice is null)
+        {
+            return;
+        }
+        
+        _badDevice.CancellationTokenSource.Cancel();
+        _badDevice.Dispose();
         _badDevice = null;
     }
 
     public bool StopBadConnectionSimulation(string connectionName)
     {
-        return _connections.TryRemove(connectionName, out _);
+        var result = _connections.TryRemove(connectionName, out var connection);
+        if (result)
+        {
+            connection.CancellationTokenSource.Cancel();
+            connection.Dispose();
+        }
+        
+        return result;
     }
 
-    public TimeSpan? GetBadConnectionLatency(string connectionName)
+    public BadConnectionDto GetBadConnection(string connectionName)
     {
         var value = _connections.GetValueOrDefault(connectionName);
         
-        return value is { IsActive: true } ? value.Latency : null;
+        return value is { IsActive: true } ? value.ToDto() : null;
     }
 
-    public void SimulateBadConnection(BadConnection badConnection)
+    public void SimulateBadConnection(BadConnectionDto badConnection)
     {
-        _connections[badConnection.Name] = badConnection;
+        _connections[badConnection.Name] = BadConnection.FromDto(badConnection);
     }
 }

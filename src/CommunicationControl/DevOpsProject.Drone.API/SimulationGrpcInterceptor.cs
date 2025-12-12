@@ -15,18 +15,18 @@ public sealed class SimulationGrpcInterceptor(ISimulationUtility simulationUtili
         var previousHopHeader = context.RequestHeaders.FirstOrDefault(h => h.Key == RoutingConstants.PreviousHopHeaderName);
         if (previousHopHeader != null)
         {
-            var simulationLatency = simulationUtility.BadDeviceLatency;
-            if (simulationLatency.HasValue)
+            var deviceSimulation = simulationUtility.BadDevice;
+            if (deviceSimulation != null)
             {
-                logger.LogWarning("Simulation - drone delay {SimulationLatency}.", simulationLatency.Value);
-                await Task.Delay(simulationLatency.Value);
+                logger.LogWarning("Simulation - drone delay {SimulationLatency}.", deviceSimulation.Latency);
+                await Task.Delay(deviceSimulation.Latency, deviceSimulation.CancellationToken);
             }
             
-            var connectionSimulationLatency = simulationUtility.GetBadConnectionLatency(previousHopHeader.Value);
-            if (connectionSimulationLatency.HasValue)
+            var connectionSimulationLatency = simulationUtility.GetBadConnection(previousHopHeader.Value);
+            if (connectionSimulationLatency != null)
             {
-                logger.LogWarning("Simulation - connection delay {ConnectionSimulationLatency}.", connectionSimulationLatency.Value);
-                await Task.Delay(connectionSimulationLatency.Value);
+                logger.LogWarning("Simulation - connection delay {ConnectionSimulationLatency}.", connectionSimulationLatency.Latency);
+                await Task.Delay(connectionSimulationLatency.Latency, connectionSimulationLatency.CancellationToken);
             }
         }
         

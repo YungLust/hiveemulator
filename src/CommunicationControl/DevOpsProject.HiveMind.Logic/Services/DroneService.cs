@@ -309,24 +309,24 @@ public sealed class DroneService(
 
         if (command.Connection1Name == currentConnection.Name)
         {
-            simulationUtility.SimulateBadConnection(new BadConnection(command.Connection2Name, command.Latency, command.Duration));
+            simulationUtility.SimulateBadConnection(new BadConnectionDto(command.Connection2Name, command.Latency, command.Duration));
         }
         else
         {
-            await SendSimulateDeadConnectionAsync(connection1, new BadConnection(command.Connection2Name, command.Latency, command.Duration));
+            await SendSimulateDeadConnectionAsync(connection1, new BadConnectionDto(command.Connection2Name, command.Latency, command.Duration));
         }
 
         if (command.Connection2Name == currentConnection.Name)
         {
-            simulationUtility.SimulateBadConnection(new BadConnection(command.Connection1Name, command.Latency, command.Duration));
+            simulationUtility.SimulateBadConnection(new BadConnectionDto(command.Connection1Name, command.Latency, command.Duration));
         }
         else
         {
-            await SendSimulateDeadConnectionAsync(connection2, new BadConnection(command.Connection1Name, command.Latency, command.Duration));
+            await SendSimulateDeadConnectionAsync(connection2, new BadConnectionDto(command.Connection1Name, command.Latency, command.Duration));
         }
     }
 
-    private async Task SendSimulateDeadConnectionAsync(Connection sendTo, BadConnection command)
+    private async Task SendSimulateDeadConnectionAsync(Connection sendTo, BadConnectionDto command)
     {
         try
         {
