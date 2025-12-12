@@ -79,7 +79,7 @@ public sealed class DroneTelemetryService(IRouterService routerService, ILogger<
         logger.LogInformation("[{Timestamp}] HiveMind {Id} Connections: {ConnectionsNames}", 
             currentTime, 
             communicationConfigurationOptions.Value.HiveID,
-            string.Join(", ", hiveMindConnections.Select(c => $"{c.ConnectionName}:{currentTime - c.LastUpdatedAt}")));
+            string.Join(", ", hiveMindConnections.Select(c => $"{c.ConnectionName}|{currentTime - c.LastUpdatedAt}")));
         
         var drones = _drones.Values.OrderBy(d => d.Id).ToList();
         foreach (var drone in drones)
@@ -105,7 +105,7 @@ public sealed class DroneTelemetryService(IRouterService routerService, ILogger<
                 drone.Destination?.Longitude,
                 drone.LastUpdatedAt,
                 connection.LastUpdatedAt);
-            logger.LogInformation("[{TimeStamp}] Drone {DroneId}: Connections: {ConnectionsNames}", currentTime, drone.Id, string.Join(", ", connectedDevices.Select(c => $"{c.ConnectionName}:{currentTime - c.LastUpdatedAt}")));
+            logger.LogInformation("[{TimeStamp}] Drone {DroneId}: Connections: {ConnectionsNames}", currentTime, drone.Id, string.Join(", ", connectedDevices.Select(c => $"{c.ConnectionName}|{currentTime - c.LastUpdatedAt}")));
         }
     }
 }

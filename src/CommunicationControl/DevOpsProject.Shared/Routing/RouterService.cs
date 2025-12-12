@@ -121,7 +121,12 @@ public sealed class RouterService : IRouterService
         {
             _connections[connection.Name] = connection;
             _connectedDevices[connection.Name] = connectedDevices.ToList();
-
+            if (connection.Name != _options.CurrentConnection.Name
+                && _connectedDevices[_options.CurrentConnection.Name].All(c => c.ConnectionName != connection.Name))
+            {
+                _connectedDevices[_options.CurrentConnection.Name].Add(new ForeignConnection(connection.Name, connection.LastUpdatedAt));
+            }
+            
             _nextHops[connection.Name] = connection;
         }
         finally
@@ -145,6 +150,17 @@ public sealed class RouterService : IRouterService
             
             _connections[connection.Name] = connection;
             _connectedDevices[connection.Name] = connectedDevices.ToList();
+            
+            if (connection.Name != _options.CurrentConnection.Name)
+            {
+                var currentConnectionIndex = _connectedDevices[_options.CurrentConnection.Name]
+                    .FindIndex(c => c.ConnectionName == connection.Name);
+
+                if (currentConnectionIndex != -1)
+                {
+                    _connectedDevices[_options.CurrentConnection.Name][currentConnectionIndex] = new ForeignConnection(connection.Name, connection.LastUpdatedAt);
+                }
+            }
             
             return true;
         }
@@ -222,7 +238,7 @@ public sealed class RouterService : IRouterService
         for (var i = 0; i < connections.Count; i++)
         {
             var connection = connections[i];
-            if (!ConnectionCanRedirect(connection))
+            if (i != currentConnectionIndex && !ConnectionCanRedirect(connection))
             {
                 adjacencyList[i] = [];
                 continue;
