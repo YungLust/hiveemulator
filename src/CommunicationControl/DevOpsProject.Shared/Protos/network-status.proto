@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+option csharp_namespace = "DevOpsProject.Shared.Grpc";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/wrappers.proto";
+
+package shared;
+
+message NetworkStatus
+{
+  string id = 1;
+  ConnectionType type = 2;
+  string ipAddress = 3;
+  int32 http1Port = 4;
+  int32 grpcPort = 5;
+  int32 udpPort = 6;
+  repeated ForeignConnection connections = 7;
+  google.protobuf.Timestamp sentAt = 8;
+}
+
+message ForeignConnection
+{
+  string name = 1;
+  google.protobuf.Timestamp lastUpdatedAt = 2;
+  google.protobuf.Duration latency = 3;
+}
+
+enum ConnectionType
+{
+  ConnectionType_Undefined = 0;
+  ConnectionType_HiveMind = 1;
+  ConnectionType_Drone = 2;
+}
