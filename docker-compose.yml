@@ -1,0 +1,30 @@
+# docker-compose.yml (корінь проекту)
+services:
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  communication-control:
+    build:
+      context: .
+      dockerfile: src/CommunicationControl/DevOpsProject/Dockerfile.full
+    ports: ["8080:8080"]
+    environment:
+      - Redis__ConnectionString=redis:6379
+    depends_on: [redis]
+
+  hivemind:
+    build:
+      context: .
+      dockerfile: src/CommunicationControl/DevOpsProject.HiveMind.API/Dockerfile.full
+    ports: ["5149:5149"]
+    environment:
+      - CommunicationConfiguration__CommunicationControlIP=communication-control
+      - CommunicationConfiguration__CommunicationControlPort=8080
+    depends_on: [redis, communication-control]
+
+  map-client:
+    build:
+      context: src/MapClient
+    ports: ["3000:80"]
+    depends_on: [communication-control]
